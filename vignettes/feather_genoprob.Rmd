@@ -1,0 +1,309 @@
+---
+title: "Add Genoprobs Methods"
+author: "Brian S. Yandell"
+date: "2/16/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This documents a new package complementary to Rqtl/qtl2geno. The intent is to generalize the `genoprobs` object, with the default being the output of `qtl2geno::calc_genoprob`. This is being done by creating new `subset`, `rbind`, and `cbind` and assignment operators for an S3 class `feather_genoprob`. 
+
+This method will deal with use cases listed below when properly installed. The routine `feather_genoprob()` will create a [feather](https://github.com/wesm/feather) database for the `probs` part of a `calc_genoprobs` object.
+
+
+## genoprob use cases
+
+Use `grep` to find use cases. Below are unique matches
+
+```
+$ grep 'genoprobs\$' R/*.R | wc
+      59     287    4319
+```
+
+routine                  |  use case
+------------------------ | ---------
+genoprob_to_snpprob.R | names(genoprobs$map)
+genoprob_to_snpprob.R | genoprobs$alleles
+genoprob_to_snpprob.R | genoprobs$map[[uchr]]
+genoprob_to_snpprob.R | ncol(genoprobs$probs[[uchr]])
+genoprob_to_snpprob.R | genoprobs$probs[[uchr]]
+genoprob_to_snpprob.R | genoprobs$is_x_chr[uchr]
+scan1.R | genoprobs$is_x_chr
+scan1.R | length(genoprobs$probs)
+scan1.R | genoprobs$probs
+scan1.R | names(genoprobs$probs)[chr]
+scan1.R | `genoprobs$probs[[chr]][these2keep,-Xcol2drop,,drop=FALSE]`
+scan1.R | `genoprobs$probs[[chr]][these2keep,-1,,drop=FALSE]`
+scan1.R | genoprobs$map
+scan1.R | genoprobs$is_x_chr
+scan1.R | genoprobs$snpinfo
+scan1_pg.R | length(genoprobs$probs)
+scan1_pg.R | genoprobs$is_x_chr
+scan1_pg.R | length(genoprobs$probs)
+scan1_pg.R | genoprobs$probs
+scan1_pg.R | genoprobs$map
+scan1_pg.R | genoprobs$is_x_chr
+scan1_pg.R | genoprobs$snpinfo
+scan1_pg.R | `genoprobs$probs[[chr]][ind2keep,-Xcol2drop,,drop=FALSE]`
+scan1_pg.R | `genoprobs$probs[[chr]][ind2keep,-1,,drop=FALSE]`
+scan1_pg.R | genoprobs$map[[1]]
+scan1blup.R | names(genoprobs$probs)[1]
+scan1blup.R | genoprobs$probs[[1]]
+scan1blup_pg.R | length(genoprobs$probs)
+scan1blup_pg.R | genoprobs$map[[1]]
+scan1blup_pg.R | names(genoprobs$probs)[1]
+scan1blup_pg.R | genoprobs$probs[[1]]
+scan1coef.R | length(genoprobs$probs)
+scan1coef.R | genoprobs$map[[1]]
+scan1coef.R | names(genoprobs$probs)[1]
+scan1coef.R | genoprobs$probs[[1]]
+scan1coef_pg.R | length(genoprobs$probs)
+scan1coef_pg.R | genoprobs$map[[1]]
+scan1coef_pg.R | names(genoprobs$probs)[1]
+scan1coef_pg.R | genoprobs$probs[[1]]
+
+### But wait: other dependencies
+
+For now, assume we start with using `qtl2geno::calc_genoprob` to compute genotype probabilities and then use a (to be created) helper routine to refactor the `calc_genoprob` object into another object, say of class `sql_genoprob`. This way we leave `calc_genoprob` intact.
+
+There are other things that need to be updated. These include
+
+- all the helper functions for `qtl2geno::calc_genoprob` objects
+    + `cbind.calc_genoprob`, `rbind.calc_genoprob` 
+    + `subset.calc_genoprob`, `[,].calc_genoprob`
+    + `calc_kinship`, `calc_kinship_bychr`, `calc_kinship_overall`
+    + `probs_to_grid`
+    + `genoprob_to_alleleprob`
+    + `expand_genoprobs_intcovar`
+    + `genoprobs_col2drop`
+    + others?
+- stuff in `qtl2convert`?
+- tests in `tests/testthat`
+    
+```
+$ grep probs tests/testthat/*.R | wc
+     330    1890   30279
+$ grep probs tests/testthat/*.R | grep -v "probs," | wc
+     231    1295   20666
+$ grep probs tests/testthat/*.R | grep -v "calc_genoprob" | wc
+     295    1687   26951
+```
+
+- Rmarkdown files
+
+```
+$ grep probs */*.Rmd | grep -v "calc_genoprob" | wc
+     119     454    8241
+```
+
+- C files (presumably working on vectors or 3D arrays pulled from `calc_genoprob` objects)
+
+```
+$ grep genoprobs src/* | wc
+     250    2197   27715
+```
+
+### tests/testthat
+
+New use cases to consider:
+
+- `probs$probs[[1]][,-1,i]`
+- `cbind(X, probs$probs[[1]][,-1,i])`
+- probs[,2:3]
+- dim(pr$probs[[1]])
+- dim(pr$probs[[1]])[[3]]
+- `qtl2geno::calc_genoprob(hyper2, step=1)$probs[[1]][,2,,drop=FALSE]`
+- aperm(prob2$probs[[1]], c(1,3,2))
+- `probs$map <- recla$pmap`
+- nrow(probs$probs[["19"]])
+
+routine                  |  use case
+------------------------ | ---------
+test-decomp_kinship.R | calc_kinship(probs)
+test-est_herit.R | calc_kinship(probs)
+test-est_herit.R | probs[,"19"]
+test-genoprobs_col2drop.R | `pr$probs$X`
+test-genoprobs_col2drop.R | `pr$probs`
+test-is_same.R | probs[[i]]
+test-linreg.R | pr$probs[[1]]
+test-rcbind_scan1.R | calc_kinship(probs)
+test-rcbind_scan1.R | probs[,1]
+test-rcbind_scan1.R | probs[,2:3]
+test-scan1.R | pr$probs[[i]]
+test-scan1.R | probs[ind,]
+test-scan1_pg.R | calc_kinship(probs)
+test-scan1_pg.R | dim(probs$probs[[1]])[3]
+test-scan1_pg.R | `cbind(X, probs$probs[[1]][,-1,i])`
+test-scan1_pg.R | `probs$probs[["4"]][,-1,i]*X`
+test-scan1_pg.R | probs[ind,]
+test-scan1blup.R | dim(pr$probs[[1]])[[3]]
+test-scan1blup.R | `pr$probs[[1]][,,i]`
+test-scan1blup.R | probs[,"3"]
+test-scan1blup.R | probs[ind,]
+test-scan1coef.R | dimnames(prob2$probs[[1]])[[3]]
+test-scan1coef.R | aperm(prob2$probs[[1]], c(1,3,2))
+test-scan1coef.R | probs[,"3"]
+test-scan1coef.R | probs[ind,]
+test-scan1coef_pg.R | `pr$probs[[1]]`
+test-scan1coef_pg.R | `pr$probs[[3]][,2,"CC.266L"]`
+test-scan1coef_pg.R | probs[,"3"]
+test-scan1coef_pg.R | probs[ind,]
+test-scanhk.R | `qtl2geno::calc_genoprob(hyper2, step=1)$probs[[1]][,2,,drop=FALSE]`
+test-snpprobs.R | `probs$map <- recla$pmap`
+test-snpprobs.R | probs$map[["19"]]
+test-snpprobs.R | nrow(probs$probs[["19"]])
+test-snpprobs.R | `rowSums((probs$probs[["19"]][,gencol==j-1,int19[i,1]+1]`
+test-snpprobs.R | `probs$probs[["19"]][,gencol==j-1,int19[i,1]`
+test-snpprobs.R | dimnames(snpprob19$probs[["19"]])
+test-snpprobs.R | `probs$map$X`
+test-snpprobs.R | `snpprobX$probs$X`
+
+### R/qtl2geno
+
+```
+$ grep probs R/*.R | wc
+     144     846   10345
+```
+
+routine                  |  use case
+------------------------ | ---------
+calc_kinship.R | names(probs$probs)
+calc_kinship.R | which(!probs$is_x_chr)
+calc_kinship.R | names(probs)
+calc_kinship.R | probs$alleleprobs
+calc_kinship.R | rownames(probs$probs[[1]])
+calc_kinship.R | aperm(probs$probs[[chr]], c(3,2,1))
+calc_kinship.R | probs$probs
+calc_kinship.R | dim(probs$probs[[chr]])[3]
+calc_kinship.R | names(probs$probs)[chrs]
+cbind_calc_genoprob.R | other_stuff <- c("is_female", "cross_info", "crosstype", "alleles", "alleleprobs",
+cbind_calc_genoprob.R | main_stuff <- c("probs", "draws")
+cbind_viterbi.R | other_stuff <- c("is_female", "cross_info", "crosstype", "alleles", "alleleprobs",
+genoprob_to_alleleprob.R | probs$alleleprobs
+genoprob_to_alleleprob.R | probs$is_x_chr
+genoprob_to_alleleprob.R | names(probs$probs)[chr]
+genoprob_to_alleleprob.R | probs$crosstype,
+genoprob_to_alleleprob.R | aperm(probs$probs[[chr]], c(2, 1, 3))
+genoprob_to_alleleprob.R | dimnames(probs$probs[[chr]])
+genoprob_to_alleleprob.R | probs$alleles
+genoprob_to_alleleprob.R | names(probs$probs)
+genoprob_to_alleleprob.R | probs$probs <- cluster_lapply(cores, chrs, by_chr_func)
+genoprob_to_alleleprob.R | names(probs$probs) <- chrID
+genoprob_to_alleleprob.R | probs$alleleprobs <- TRUE
+genoprob_to_alleleprob.R | probs
+maxmarg.R | probs$map
+maxmarg.R | `probs$probs <- list("1"=probs$probs[[chr]][,,marker,drop=FALSE])`
+maxmarg.R | is.null(colnames(probs$probs[[1]]))
+maxmarg.R | names(probs$probs)[chr]
+maxmarg.R | dimnames(probs$probs[[chr]])
+maxmarg.R | aperm(probs$probs[[chr]], c(2,3,1)), minprob=minprob)
+maxmarg.R | seq(along=probs$probs)
+maxmarg.R | names(probs$probs)
+maxmarg.R | probs$probs <- result
+maxmarg.R | names(probs)[names(probs)=="probs"] <- "geno"
+maxmarg.R | class(probs) <- c("viterbi", "list")
+maxmarg.R | probs
+probs_to_grid.R | probs$map
+probs_to_grid.R | is.null(probs$map)
+probs_to_grid.R | probs$stepwidth
+probs_to_grid.R | probs$grid
+probs_to_grid.R | is.null(probs$grid)
+probs_to_grid.R | names(probs$probs)
+probs_to_grid.R | dim(probs$probs[[i]])[3]
+probs_to_grid.R | ncol(probs$probs[[i]])
+probs_to_grid.R | `probs$probs[[i]] <- probs$probs[[i]][,,grid[[i]],drop=FALSE]`
+probs_to_grid.R | probs$map <- map_to_grid(map, grid)
+probs_to_grid.R | probs$grid <- NULL # don't need this anymore
+probs_to_grid.R | probs
+rbind_calc_genoprob.R | other_stuff <- c("crosstype", "is_x_chr", "alleles", "alleleprobs",
+rbind_calc_genoprob.R | for(obj in c("probs", "draws")) {
+rbind_viterbi.R | other_stuff <- c("crosstype", "is_x_chr", "alleles", "alleleprobs",
+sim_geno2.R | probs <- vector("list", length(map))
+subset_calc_genoprob.R |     to_sub <- c("probs", "draws", "map", "is_x_chr", "grid", "snpinfo")
+subset_calc_genoprob.R | `"probs" %in% names(x)`
+subset_calc_genoprob.R | rownames(x$probs[[1]])
+subset_calc_genoprob.R |     for(a in c("probs", "draws")) {
+viterbi.R | probs <- vector("list", length(map))
+viterbi2.R | probs <- vector("list", length(map))
+
+## Set up `get_genoprob.R`
+
+The method function `get_genoprob` is the entry point to get elements of `genoprobs`.
+The function `get_genoprob.default` builds out the default use cases. But see above about other use cases.
+
+element | args           |  use case
+------- | -------------- | ---------
+alleles | | genoprobs$alleles
+chr_names | chr=NULL | names(genoprobs$map)
+chr_names | chr | names(genoprobs$probs)[chr]
+chr_names | chr=1 | names(genoprobs$probs)[1]
+is_x_chr | chr=NULL | genoprobs$is_x_chr
+is_x_chr | chr=uchr | genoprobs$is_x_chr[uchr]
+map | chr=1 | genoprobs$map[[1]]
+map | chr=uchr | genoprobs$map[[uchr]]
+nchr | | length(genoprobs$probs)
+ngen | | ncol(genoprobs$probs[[uchr]])
+probs | | genoprobs$probs
+probs | chr=1 | genoprobs$probs[[1]]
+probs | chr=uchr | genoprobs$probs[[uchr]]
+probs | chr, ind=these2keep, gen=-Xcol2drop, mar=NULL | `genoprobs$probs[[chr]][these2keep,-Xcol2drop,,drop=FALSE]`
+probs | chr, ind=these2keep, gen=-1, mar=NULL | `genoprobs$probs[[chr]][these2keep,-1,,drop=FALSE]`
+snpinfo | | genoprobs$snpinfo
+
+## qtl2scan::scan1
+
+## Code for decomposition
+
+Want to do SVD once on kinship and have an object that is either in present form or in decomposed form. See `by_chr_func` in `calc_hsq_clean` in `scan1_pg.R`
+```
+$ grep fitLMM R/*.R
+R/RcppExports.R:Rcpp_fitLMM <- function(Kva, y, X, reml = TRUE, check_boundary = TRUE, logdetXpX = NA_real_, tol = 1e-4) {
+R/RcppExports.R:    .Call('qtl2scan_Rcpp_fitLMM', PACKAGE = 'qtl2scan', Kva, y, X, reml, check_boundary, logdetXpX, tol)
+R/RcppExports.R:Rcpp_fitLMM_mat <- function(Kva, Y, X, reml = TRUE, check_boundary = TRUE, logdetXpX = NA_real_, tol = 1e-4) {
+R/RcppExports.R:    .Call('qtl2scan_Rcpp_fitLMM_mat', PACKAGE = 'qtl2scan', Kva, Y, X, reml, check_boundary, logdetXpX, tol)
+R/scan1_pg.R:            Rcpp_fitLMM_mat(Ke[[chr]]$values, y, ac, reml, check_boundary,
+R/scan1blup_pg.R:    nullresult <- Rcpp_fitLMM(eigenval, pheno, addcovar, reml=reml, check_boundary=TRUE, tol=tol)
+```
+
+see `decomp_kinship` in `scan1_pg`. eigen decomposition of kinship matrix
+use values if you already have it.
+
+```
+Ke <- decomp_kinship(K, cores=cores)
+```
+
+want decomp and `hsq` element from `calc_hsq_clean`
+
+```
+$ grep Ke R/*.R
+R/decomp_kinship.R:#' Ke <- decomp_kinship(K)
+R/est_herit.R:        Ke <- decomp_kinship(K, cores=cores)
+R/est_herit.R:        nullresult <- calc_hsq_clean(Ke, ph, ac, NULL, FALSE, reml, cores,
+R/scan1_pg.R:        Ke <- decomp_kinship(K, cores=cores)
+R/scan1_pg.R:        nullresult <- calc_hsq_clean(Ke, ph, ac, Xc, is_x_chr, reml, cores,
+R/scan1_pg.R:        lod <- scan1_pg_clean(genoprobs, these2keep, Ke, ph, ac, ic, is_x_chr,
+R/scan1_pg.R:# Ke is eigendecomposition of 2*kinship
+R/scan1_pg.R:    function(Ke, pheno, addcovar, Xcovar, is_x_chr, reml=TRUE, cores=1,
+R/scan1_pg.R:    if(!is.list(Ke[[1]])) {
+R/scan1_pg.R:            Ke <- list(Ke, Ke)
+R/scan1_pg.R:        else { Ke <- list(Ke); is_x_chr <- FALSE }
+R/scan1_pg.R:            y <- Ke[[chr]]$vectors %*% pheno
+R/scan1_pg.R:            ac <- Ke[[chr]]$vectors %*% ac
+R/scan1_pg.R:            Rcpp_fitLMM_mat(Ke[[chr]]$values, y, ac, reml, check_boundary,
+R/scan1_pg.R:    result <- cluster_lapply(cores, seq(along=Ke), by_chr_func)
+R/scan1_pg.R:    function(genoprobs, ind2keep, Ke, pheno, addcovar, intcovar, is_x_chr,
+R/scan1_pg.R:    if(!is.list(Ke[[1]])) {
+R/scan1_pg.R:                Kevec <- Ke[[chr]]$vectors
+R/scan1_pg.R:                Keval <- Ke[[chr]]$values
+R/scan1_pg.R:                Kevec <- Ke$vectors
+R/scan1_pg.R:                Keval <- Ke$values
+R/scan1_pg.R:                weights <- 1/(hsq[chr,phecol]*Keval + (1-hsq[chr,phecol]))
+R/scan1_pg.R:                    weights <- 1/(hsq[1,phecol]*Keval + (1-hsq[1,phecol]))
+R/scan1_pg.R:                    weights <- 1/(hsq[2,phecol]*Keval + (1-hsq[2,phecol]))
+R/scan1_pg.R:                loglik <- scan_pg_onechr(pr, y, ac, Kevec, weights, tol)
+R/scan1_pg.R:                loglik <- scan_pg_onechr_intcovar_highmem(pr, y, ac, ic, Kevec, weights, tol)
+R/scan1_pg.R:                loglik <- scan_pg_onechr_intcovar_lowmem(pr, y, ac, ic, Kevec, weights, tol)
+```
