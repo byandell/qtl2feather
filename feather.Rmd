@@ -1,0 +1,80 @@
+---
+title: "Petr Mockup"
+author: "Brian S. Yandell"
+date: "3/17/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The motivation is to reduce memory usage. Matt told us that memory is his greatest obstacle, when running QTL browsers because he cannot add more `R/plumber` workers. Also, if you have a cheap Windows laptop you cannot even open many DO `.RData` projects simply because haplotype probability object is too big.
+ 
+The solution would be to store data in some database and load just a slice you need at a time. I experimented with `SQLite` but it was too slow. Then I try feather and it run fine (R script attached – crunching 1000 SNPs at a time). It just does not use `qtl2scan` effectively because the package is not prepared for that.
+
+Task: refactor this Rmd to use DOex and run some examples.
+
+```{r}
+library(dplyr)
+library(qtl2convert)
+library(qtl2geno)
+library(qtl2scan)
+library(qtl2plot)
+
+library(feather)
+```
+
+```{r}
+load("C:/Temp/kidney.RData")
+```
+
+Which gene is Ace?
+
+```
+idx <- which(annot.mrna$symbol == "Ace")
+addcovar <- covar[,-1]
+
+db.file <- "C:/Temp/genoprobs_kidney.feather"
+```
+
+```{r}
+Nbatches = 1000
+Nsnps <- nrow(snps)
+# make SNPs split into Nbatches
+batches <-  split(1:Nsnps, ceiling(seq_along(1:Nsnps)/Nbatches))
+```
+
+LOD object to be produced
+
+```{r}
+result <- NULL
+
+for (i in 1:length(batches)) {
+
+  # fetch data from the database
+  tmp <- read_feather(db.file, batches[[i]])
+  print(i)
+  
+  # dimnames harcoded, ADD ASSERTIONS LATER 
+  tmp.snps <- names(tmp)
+  tmp.probs <- as.array(as.matrix(tmp))
+  dim(tmp.probs) <- c(nrow(tmp.probs) %/% 8, 8, ncol(tmp.probs))
+  dimnames(tmp.probs) <- list(annot.samples$Mouse.ID, LETTERS[1:8], tmp.snps)
+  
+  # convert to qtl2 format
+  probs <- probs_doqtl_to_qtl2(tmp.probs, snps[tmp.snps,], pos_column = "bp")
+  chrs <- unique(snps[tmp.snps,"chr"])
+  
+  tmp.fit <- scan1(genoprobs=probs, 
+               kinship=Glist[chrs],
+               pheno=expr.mrna[,idx], 
+               addcovar=addcovar, 
+               cores=1, 
+               reml=TRUE)
+  
+  # save LOD scores to results
+  result <- rbind(result, tmp.fit$lod)
+}
+```
+
