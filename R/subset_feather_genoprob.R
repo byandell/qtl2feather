@@ -26,7 +26,7 @@
 #' grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
 #' \dontshow{grav2 <- grav2[1:8,c(1,2)]}
 #' pr <- calc_genoprob(grav2)
-#' fpr <- featuer_genoprob(pr, "my.feather")
+#' fpr <- feather_genoprob(pr, "my.feather")
 #' # keep just individuals 1:5, chromosome 2
 #' prsub <- fpr[1:5,2]
 #' # keep just chromosome 2
@@ -36,8 +36,8 @@ subset.feather_genoprob <-
 {
     if(is.null(ind) && is.null(chr))
         stop("You must specify either ind or chr.")
-
-    chrID <- names(x$map)
+    
+    chrID <- names(x)
     n_chr <- length(chrID)
     if(!is.null(chr)) {
         if(is.logical(chr)) {
@@ -57,21 +57,29 @@ subset.feather_genoprob <-
         }
         if(length(chr) == 0)
             stop("Must retain at least one chromosome.")
-
-        to_sub <- c("probs", "draws", "map", "is_x_chr", "grid", "snpinfo") # draws is here, to also deal with sim_geno objects
-        for(a in to_sub) {
-            if(a %in% names(x)) {
-                x[[a]] <- x[[a]][chr]
-            }
+      
+        cl <- class(x)
+        class(x) <- "list"
+      
+        attr_to_sub <- c("is_x_chr")
+        attr_to_keep <- c("crosstype", "alleles", "alleleprobs")
+        x_attr <- attributes(x)
+        x_attrnam <- names(x_attr)
+        x <- x[chr]
+      for(a in attr_to_sub) {
+        if(a %in% x_attrnam) {
+          attr(x, a) <- x_attr[[a]][chr]
         }
+      }
+      for(a in attr_to_keep) {
+        if(a %in% attr_to_keep)
+          attr(x, a) <- x_attr[[a]]
+      }
+      class(x) <- cl
     }
-
-    if("probs" %in% names(x))
-        indID <- rownames(x$probs[[1]])
-    else if("draws" %in% names(x))
-        indID <- rownames(x$draws[[1]])
-    else stop("Neither probs no draws found.")
-
+    
+    indID <- rownames(x[[1]])
+    
     n_ind <- length(indID)
     if(!is.null(ind)) {
         if(is.logical(ind)) {
@@ -96,15 +104,15 @@ subset.feather_genoprob <-
         }
         if(length(ind) == 0)
             stop("Must retain at least one individual.")
-
-        for(a in c("probs", "draws")) {
-            if(a %in% names(x)) {
-                for(i in names(x$map)) # loop over chromosomes
-                    x[[a]][[i]] <- x[[a]][[i]][ind,,,drop=FALSE]
-            }
-        }
-        if(!is.null(x$cross_info))
-            x$cross_info <- x$cross_info[ind, , drop=FALSE]
+      
+        cl <- class(x)
+        class(x) <- "list"
+      
+        for(i in names(x)) # loop over chromosomes
+          x[[i]] <- x[[i]][ind,,,drop=FALSE]
+      
+        class(x) <- cl
+      
     }
 
     x
@@ -113,6 +121,7 @@ subset.feather_genoprob <-
 #' @export
 #' @export [.feather_genoprob
 #' @method [ feather_genoprob
+#' 
 #' @rdname subset.feather_genoprob
 `[.feather_genoprob` <-
     function(x, ind=NULL, chr=NULL)
