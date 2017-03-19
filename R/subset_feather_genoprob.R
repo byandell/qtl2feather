@@ -37,7 +37,10 @@ subset.feather_genoprob <-
     if(is.null(ind) && is.null(chr))
         stop("You must specify either ind or chr.")
     
-    chrID <- x$attr$names
+    attrs <- attributes(x)
+    x <- as.list(x)
+    
+    chrID <- attrs$chr
     n_chr <- length(chrID)
     if(!is.null(chr)) {
         if(is.logical(chr)) {
@@ -59,7 +62,7 @@ subset.feather_genoprob <-
             stop("Must retain at least one chromosome.")
       
         # Reduce to pointers to kept chromosomes.
-        x$chr_dim <- x$chr_dim[chr]
+        x$chr <- chr
     }
     
     indID <- x$ind
@@ -91,7 +94,14 @@ subset.feather_genoprob <-
       
         x$ind <- ind
     }
-
+    
+    # Set up attributes.
+    ignore <- match(c("names","class"), names(attrs))
+    for(a in names(attrs)[-ignore])
+      attr(x, a) <- attrs[[a]]
+    
+    class(x) <- attrs$class
+    
     x
 }
 
@@ -112,14 +122,17 @@ element_feather_genoprob <-
     if(length(chr) != 1)
       stop("need exactly one chr")
     
+    is_x_chr <- attr(x, "is_x_chr")
+    x <- as.list(x)
+    
     # Make sure we have chr ID.
     if(is.numeric(chr))
-      chr <- names(x$chr_dim)[chr]
+      chr <- x$chr[chr]
     
     dnames <- x$chr_dim[[chr]]$dimnames
     dims <- x$chr_dim[[chr]]$dim
     
-    path <- ifelse(x$attr$is_x_chr[chr], x$featherX, x$feather)
+    path <- ifelse(is_x_chr[chr], x$feather["X"], x$feather["A"])
     probs <- feather::read_feather(path, columns = dnames[[3]])
     
     probs <- as.array(as.matrix(probs))
@@ -130,20 +143,12 @@ element_feather_genoprob <-
     probs[x$ind, ,, drop=FALSE]
   }
 #' @export
-#' @export [[.feather_genoprob
-#' @method [[ feather_genoprob
-#' 
-#' @rdname subset.feather_genoprob
 `[[.feather_genoprob` <-
   function(x, chr) {
     element_feather_genoprob(x, chr)
   }
 #' @export
-#' @export $.feather_genoprob
-#' @method $ feather_genoprob
-#' 
-#' @rdname subset.feather_genoprob
-#`$.feather_genoprob` <-
-#  function(x, chr) {
-#    element_feather_genoprob(x, chr)
-#  }
+`$.feather_genoprob` <-
+  function(x, chr) {
+    x[[chr]]
+  }

@@ -23,62 +23,85 @@
 cbind.feather_genoprob <-
     function(...)
 {
-    args <- list(...)
+    args <- list(..., , basename, dirname = dirname(result$feather["A"]))
     
     # to cbind: probs, is_x_chr
     # to pass through (must match): crosstype, alleles, alleleprobs
     
     result <- args[[1]]
     if(length(args) == 1) return(result)
+
+    attrs <- attributes(result)
+    result <- as.list(result)
     
     # paste stuff together
+    same_feather <- rep(TRUE, length(args))
     for(i in 2:length(args)) {
-      if(length(args[[1]]$ind) != length(args[[i]]$ind) ||
-         !all(args[[1]]$ind == args[[i]]$ind))
+      if(!inherits(args[[i]], "feather_genoprob"))
+        stop("argument ", i, "is not of class feather_genoprob")
+
+      argsi <- as.list(args[[i]])
+      
+      if(length(result$ind) != length(argsi$ind) ||
+         !all(result$ind == argsi$ind))
         stop("Input objects 1 and ", i, " have different individuals")
       
-#     result <- c(result, args[[i]])
-      
       # This requires some care, as need to combine feathers
-      if(result$feather == args[[i]]$feather) {
-        result$chr_dim <- c(result$chr_dim, args[[i]]$chr_dim)
-        results$attr$is_x_chr <- c(results$attr$is_x_chr, args[[i]]$attr$is_x_chr)
+      same_feather[i] <- (result$feather["A"] == argsi$feather["A"])
+      if(same_feather[i]) {
+        new_chr <- is.na(match(argsi$chr, result$chr))
+        if(!any(new_chr))
+          stop("argument ", i, "has no new chromosomes")
+        new_chr <- argsi$chr[new_chr]
+        result$chr <- c(result$chr, new_chr)
+        result$chr_dim <- c(result$chr_dim, argsi$chr_dim[new_chr])
+        attrs$is_x_chr <- c(attrs$is_x_chr, attr(args[[i]], "is_x_chr")[new_chr])
       }
-      else {
-        stop("cannot handle this yet")
+    }
+    
+    # Set up attributes.
+    ignore <- match(c("names","class"), names(attrs))
+    for(a in names(attrs)[-ignore])
+      attr(result, a) <- attrs[[a]]
+    
+    class(result) <- attrs$class
+
+    # Done, unless some args have different feather files.
+    if(any(!same_feather)) {
+      if(missing(basename))
+        stop("need to supply basename to bind distinct feather_genoprob objects")
+      
+      result <- feather2calc_genoprob(result)
+      
+      # *** Need to combine feathers here. ***
+      # Want to do that once, not every loop.
+      # read_feather using $ind and $chr_dim to subset.
+      # DO I need feather2calc_genoprob?
+      # Similar issue for rbind, but there we have to create new.
+      for(i in which(!same_feather)) {
+        argsi <- as.list(args[[i]])
         
-        # Need to combine feathers here.
-        # Want to do that once, not every loop.
-        # read_feather using $ind and $chr_dim to subset.
-        # DO I need feather2calc_genoprob?
-        # Similar issue for rbind, but there we have to create new.
+        new_chr <- is.na(match(argsi$chr, result$chr))
+        if(!any(new_chr))
+          stop("argument ", i, "has no new chromosomes")
+        new_chr <- argsi$chr[new_chr]
+
+        # Append chr by chr
+        result <- c(result, )
+        
+          result$chr <- c(result$chr, new_chr)
+          result$chr_dim <- c(result$chr_dim, argsi$chr_dim[new_chr])
+          attrs$is_x_chr <- c(attrs$is_x_chr, attr(args[[i]], "is_x_chr")[new_chr])
+        }
       }
     }
+
+    # Set up attributes.
+    ignore <- match(c("names","class"), names(attrs))
+    for(a in names(attrs)[-ignore])
+      attr(result, a) <- attrs[[a]]
     
-    other_stuff <- c("is_x_chr")
-    for(obj in other_stuff)
-      attr(result, obj) <- attr(args[[1]], obj)
-    for(i in 2:length(args)) {
-      for(obj in other_stuff) {
-        if(is.null(attr(args[[1]], obj)) && is.null(attr(args[[i]], obj))) next # not present
-        if(is.null(attr(args[[1]], obj)) || is.null(attr(args[[i]], obj)))
-          stop(obj, " not present in all inputs")
-        attr(result, obj) <- c(attr(result, obj), attr(args[[i]], obj))
-      }
-    }
-    
-    # check that things match
-    other_stuff <- c("crosstype", "alleles", "alleleprobs")
-    for(i in 2:length(args)) {
-      for(obj in other_stuff) {
-        if(!is_same(attr(args[[1]], obj), attr(args[[i]], obj)))
-          stop("Input objects 1 and ", i, " differ in their ", obj)
-      }
-    }
-    for(obj in other_stuff)
-      attr(result, obj) <- attr(args[[1]], obj)
-    
-    class(result) <- class(args[[1]])
+    class(result) <- attrs$class
     
     result
 }
