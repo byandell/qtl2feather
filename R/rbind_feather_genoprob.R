@@ -6,9 +6,9 @@
 #' @param ... Genotype probability objects as produced by
 #' \code{\link{feather_genoprob}}. Must have the same set of markers and
 #' genotypes.
-#' @param basename Base of fileame for feather database. 
+#' @param fbase Base of fileame for feather database. 
 #' Needed if objects have different feather databases.
-#' @param dirname Directory for feather database.
+#' @param fdir Directory for feather database.
 #'
 #' @return A single genotype probability object.
 #'
@@ -25,7 +25,7 @@
 #' @method rbind feather_genoprob
 #' 
 rbind.feather_genoprob <-
-    function(..., basename, dirname = dirname(result$feather["A"]))
+    function(..., fbase, fdir = dirname(result$feather["A"]))
 {
     args <- list(...)
     

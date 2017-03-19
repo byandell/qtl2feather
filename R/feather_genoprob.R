@@ -6,8 +6,8 @@
 #' @param genoprob Object of class \code{"calc_genoprob"}. For details, see the
 #' \href{http://kbroman.org/qtl2/assets/vignettes/developer_guide.html}{R/qtl2 developer guide}
 #' and \code{\link[qtl2geno]{calc_genoprob}}.
-#' @param basename Base of fileame for feather database.
-#' @param dirname Directory for feather database.
+#' @param fbase Base of fileame for feather database.
+#' @param fdir Directory for feather database.
 #'
 #' @return A list containing the attributes of \code{genoprob} and the address for the created feather database.
 #'
@@ -26,11 +26,11 @@
 #' fprobs <- feather_genoprob(probs, "my.feather")
 
 feather_genoprob <-
-function(genoprob, basename, dirname = ".")
+function(genoprob, fbase, fdir = ".")
 {
   # Set up directory for feather objects.
-  if(!dir.exists(dirname))
-    stop(paste("directory", dirname, "does not exist"))
+  if(!dir.exists(fdir))
+    stop(paste("directory", fdir, "does not exist"))
   
   # Get attributes from genoprob object.
   attrs <- attributes(genoprob)
@@ -44,12 +44,12 @@ function(genoprob, basename, dirname = ".")
   is_x_chr <- attr(genoprob, "is_x_chr")
   
   # Add feather addresses
-  if(missing(basename))
-    stop("need to supply basename")
-  result$feather <- c(A = file.path(dirname, 
-                                 paste(basename, "feather", sep = ".")))
+  if(missing(fbase))
+    stop("need to supply fbase")
+  result$feather <- c(A = file.path(fdir, 
+                                 paste(fbase, "feather", sep = ".")))
   if(any(is_x_chr))
-    result$feather["X"] <- file.path(dirname, paste(basename, "feather", sep = "_X."))
+    result$feather["X"] <- file.path(fdir, paste(fbase, "feather", sep = "_X."))
   
   # Turn list of 3D arrays into table
   # Need to handle X chr separately!

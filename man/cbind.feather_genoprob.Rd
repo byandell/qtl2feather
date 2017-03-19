@@ -4,17 +4,17 @@
 \alias{cbind.feather_genoprob}
 \title{Join genotype probabilities for different chromosomes}
 \usage{
-\method{cbind}{feather_genoprob}(..., basename,
-  dirname = dirname(result$feather["A"]))
+\method{cbind}{feather_genoprob}(..., fbase,
+  fdir = dirname(result$feather["A"]))
 }
 \arguments{
 \item{...}{Genotype probability objects as produced by
 \code{\link{feather_genoprob}}. Must have the same set of individuals.}
 
-\item{basename}{Base of fileame for feather database. 
+\item{fbase}{Base of fileame for feather database. 
 Needed if objects have different feather databases.}
 
-\item{dirname}{Directory for feather database.}
+\item{fdir}{Directory for feather database.}
 }
 \value{
 A single genotype probability object.
@@ -29,6 +29,8 @@ grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
 map <- insert_pseudomarkers(grav2$gmap, step=1)
 probsA <- calc_genoprob(grav2[1:5,1:2], map, error_prob=0.002)
 probsB <- calc_genoprob(grav2[1:5,3:4], map, error_prob=0.002)
-probs <- cbind(probsA, probsB)
+fprobsA <- feather_genoprob(probsA, "exampleA")
+fprobsB <- feather_genoprob(probsB, "exampleB")
+fprobs <- cbind(fprobsA, fprobsB, fbase = "exampleAB")
 
 }

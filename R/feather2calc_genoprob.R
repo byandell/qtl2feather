@@ -28,8 +28,9 @@ feather2calc_genoprob <- function(object) {
 
   chr <- unclass(object)$chr
   result <- vector(mode = "list", length = length(chr))
+  names(result) <- chr
   for(chri in chr)
-    result[[chri]] <- object[[i]]
+    result[[chri]] <- object[[chri]]
   
   # Set up attributes.
   ignore <- match(c("names","class"), names(attrs))
