@@ -38,9 +38,9 @@ subset.feather_genoprob <-
         stop("You must specify either ind or chr.")
     
     attrs <- attributes(x)
-    x <- as.list(x)
+    x <- unclass(x)
     
-    chrID <- attrs$chr
+    chrID <- x$chr
     n_chr <- length(chrID)
     if(!is.null(chr)) {
         if(is.logical(chr)) {
@@ -123,7 +123,7 @@ element_feather_genoprob <-
       stop("need exactly one chr")
     
     is_x_chr <- attr(x, "is_x_chr")
-    x <- as.list(x)
+    x <- unclass(x)
     
     # Make sure we have chr ID.
     if(is.numeric(chr))
@@ -143,11 +143,17 @@ element_feather_genoprob <-
     probs[x$ind, ,, drop=FALSE]
   }
 #' @export
+#' @export [[.feather_genoprob
+#' @method [[ feather_genoprob
+#' 
 `[[.feather_genoprob` <-
   function(x, chr) {
     element_feather_genoprob(x, chr)
   }
 #' @export
+#' @export $.feather_genoprob
+#' @method $ feather_genoprob
+#' 
 `$.feather_genoprob` <-
   function(x, chr) {
     x[[chr]]

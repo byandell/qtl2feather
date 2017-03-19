@@ -54,7 +54,15 @@ dim(fapr[["X"]])
 The following does not work well. Yet.
 
 ```{r}
-try(dim(fapr$X))
+dim(fapr$X)
+```
+
+```{r}
+names(fapr)
+```
+
+```{r}
+names(unclass(fapr))
 ```
 
 ```{r}

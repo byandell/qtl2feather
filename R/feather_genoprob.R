@@ -38,8 +38,8 @@ function(genoprob, basename, dirname = ".")
   # Get dimensions and dimnames for chromosome information
   result <- list(chr_dim = lapply(genoprob, function(x) attributes(x)),
               # Identify individuals (for later subset use).
-              ind = result$chr_dim[[1]]$dimnames[[1]],
               chr = names(genoprob))
+  result$ind <- result$chr_dim[[1]]$dimnames[[1]]
   
   is_x_chr <- attr(genoprob, "is_x_chr")
   
@@ -78,3 +78,9 @@ function(genoprob, basename, dirname = ".")
   
   result
 }
+#' @export
+#' @export names.feather_genoprob
+#' @method names feather_genoprob
+#' 
+names.feather_genoprob <- function(x)
+  unclass(x)$chr

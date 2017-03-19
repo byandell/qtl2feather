@@ -4,11 +4,17 @@
 \alias{cbind.feather_genoprob}
 \title{Join genotype probabilities for different chromosomes}
 \usage{
-\method{cbind}{feather_genoprob}(...)
+\method{cbind}{feather_genoprob}(..., basename,
+  dirname = dirname(result$feather["A"]))
 }
 \arguments{
 \item{...}{Genotype probability objects as produced by
 \code{\link{feather_genoprob}}. Must have the same set of individuals.}
+
+\item{basename}{Base of fileame for feather database. 
+Needed if objects have different feather databases.}
+
+\item{dirname}{Directory for feather database.}
 }
 \value{
 A single genotype probability object.

@@ -3,14 +3,11 @@
 \name{subset.feather_genoprob}
 \alias{subset.feather_genoprob}
 \alias{[.feather_genoprob}
-\alias{[[.feather_genoprob}
 \title{Subsetting genotype probabilities}
 \usage{
 \method{subset}{feather_genoprob}(x, ind = NULL, chr = NULL, ...)
 
 \method{[}{feather_genoprob}(x, ind = NULL, chr = NULL)
-
-\method{[[}{feather_genoprob}(x, chr)
 }
 \arguments{
 \item{x}{Genotype probabilities as output from \code{\link{feather_genoprob}}.}

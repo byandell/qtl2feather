@@ -4,14 +4,14 @@
 \alias{feather_genoprob}
 \title{Store genotype probabilities in feather database}
 \usage{
-feather_genoprob(genoprob, filebase, dirname = ".")
+feather_genoprob(genoprob, basename, dirname = ".")
 }
 \arguments{
 \item{genoprob}{Object of class \code{"calc_genoprob"}. For details, see the
 \href{http://kbroman.org/qtl2/assets/vignettes/developer_guide.html}{R/qtl2 developer guide}
 and \code{\link[qtl2geno]{calc_genoprob}}.}
 
-\item{filebase}{Base of fileame for feather database.}
+\item{basename}{Base of fileame for feather database.}
 
 \item{dirname}{Directory for feather database.}
 }

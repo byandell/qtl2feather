@@ -5,6 +5,9 @@
 #'
 #' @param ... Genotype probability objects as produced by
 #' \code{\link{feather_genoprob}}. Must have the same set of individuals.
+#' @param basename Base of fileame for feather database. 
+#' Needed if objects have different feather databases.
+#' @param dirname Directory for feather database.
 #'
 #' @return A single genotype probability object.
 #'
@@ -21,18 +24,21 @@
 #' @method cbind feather_genoprob
 #'
 cbind.feather_genoprob <-
-    function(...)
+    function(..., basename, dirname = dirname(result$feather["A"]))
 {
-    args <- list(..., , basename, dirname = dirname(result$feather["A"]))
+    args <- list(...)
     
     # to cbind: probs, is_x_chr
     # to pass through (must match): crosstype, alleles, alleleprobs
     
     result <- args[[1]]
-    if(length(args) == 1) return(result)
+    if(!inherits(result, "feather_genoprob"))
+      stop("argument ", 1, "is not of class feather_genoprob")
+    if(length(args) == 1) 
+      return(result)
 
     attrs <- attributes(result)
-    result <- as.list(result)
+    result <- unclass(result)
     
     # paste stuff together
     diff_feather <- FALSE
@@ -40,7 +46,7 @@ cbind.feather_genoprob <-
       if(!inherits(args[[i]], "feather_genoprob"))
         stop("argument ", i, "is not of class feather_genoprob")
 
-      argsi <- as.list(args[[i]])
+      argsi <- unclass(args[[i]])
       
       if(length(result$ind) != length(argsi$ind) ||
          !all(result$ind == argsi$ind))
@@ -87,7 +93,7 @@ cbind.feather_genoprob <-
     # Convert rest to calc_genoprob and append in usual way.
     for(i in seq(diff_feather, length(args))) {
       argsi <- feather2calc_genoprob(args[[i]])
-      result <- c(result, argsi)
+      result <- cbind(result, argsi)
     }
 
     feather_genoprob(result, basename, dirname)

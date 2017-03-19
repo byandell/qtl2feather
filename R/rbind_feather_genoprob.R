@@ -6,6 +6,9 @@
 #' @param ... Genotype probability objects as produced by
 #' \code{\link{feather_genoprob}}. Must have the same set of markers and
 #' genotypes.
+#' @param basename Base of fileame for feather database. 
+#' Needed if objects have different feather databases.
+#' @param dirname Directory for feather database.
 #'
 #' @return A single genotype probability object.
 #'
@@ -22,7 +25,7 @@
 #' @method rbind feather_genoprob
 #' 
 rbind.feather_genoprob <-
-    function(...)
+    function(..., basename, dirname = dirname(result$feather["A"]))
 {
     args <- list(...)
     
@@ -35,28 +38,21 @@ rbind.feather_genoprob <-
     # check that things match
     other_stuff <- c("crosstype", "is_x_chr", "alleles", "alleleprobs")
     for(i in 2:length(args)) {
+      if(!inherits(args[[i]], "feather_genoprob"))
+        stop("argument ", i, "is not of class feather_genoprob")
       for(obj in other_stuff) {
         if(!is_same(attr(args[[1]], obj), attr(args[[i]], obj)))
           stop("Input objects 1 and ", i, " differ in their ", obj)
       }
     }
     
-    # create space for result
-    nind <- vapply(args, function(a) nrow(a[[1]]), 1)
-    totind <- sum(nind)
-    index <- split(1:totind, rep(seq(along=nind), nind))
-    
-    result <- vector("list", length(args[[1]]))
-    names(result) <- names(args[[1]])
-    for(chr in names(result)) {
-      dimn <- dimnames(args[[1]][[chr]])
-      dimv <- dim(args[[1]][[chr]])
-      result[[chr]] <- array(dim=c(totind, dimv[2], dimv[3]))
-      dimnames(result[[chr]]) <- list(paste(1:totind), dimn[[2]], dimn[[3]])
-    }
+    attrs <- attributes(result)
+    result <- unclass(result)
     
     # paste stuff together
+    diff_feather <- FALSE
     for(i in 1:length(args)) {
+      argsi <- unclass(args[[i]])
       if(!is_same(names(args[[1]]), names(args[[i]])))
         stop("Input objects 1 and ", i, " have different chromosome names")
       for(chr in names(args[[1]])) {
