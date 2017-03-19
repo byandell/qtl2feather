@@ -37,7 +37,7 @@ subset.feather_genoprob <-
     if(is.null(ind) && is.null(chr))
         stop("You must specify either ind or chr.")
     
-    chrID <- names(x)
+    chrID <- x$attr$names
     n_chr <- length(chrID)
     if(!is.null(chr)) {
         if(is.logical(chr)) {
@@ -58,27 +58,11 @@ subset.feather_genoprob <-
         if(length(chr) == 0)
             stop("Must retain at least one chromosome.")
       
-        cl <- class(x)
-        class(x) <- "list"
-      
-        attr_to_sub <- c("is_x_chr")
-        attr_to_keep <- c("crosstype", "alleles", "alleleprobs")
-        x_attr <- attributes(x)
-        x_attrnam <- names(x_attr)
-        x <- x[chr]
-      for(a in attr_to_sub) {
-        if(a %in% x_attrnam) {
-          attr(x, a) <- x_attr[[a]][chr]
-        }
-      }
-      for(a in attr_to_keep) {
-        if(a %in% attr_to_keep)
-          attr(x, a) <- x_attr[[a]]
-      }
-      class(x) <- cl
+        # Reduce to pointers to kept chromosomes.
+        x$chr_dim <- x$chr_dim[chr]
     }
     
-    indID <- rownames(x[[1]])
+    indID <- x$ind
     
     n_ind <- length(indID)
     if(!is.null(ind)) {
@@ -105,14 +89,7 @@ subset.feather_genoprob <-
         if(length(ind) == 0)
             stop("Must retain at least one individual.")
       
-        cl <- class(x)
-        class(x) <- "list"
-      
-        for(i in names(x)) # loop over chromosomes
-          x[[i]] <- x[[i]][ind,,,drop=FALSE]
-      
-        class(x) <- cl
-      
+        x$ind <- ind
     }
 
     x
@@ -126,3 +103,47 @@ subset.feather_genoprob <-
 `[.feather_genoprob` <-
     function(x, ind=NULL, chr=NULL)
     subset(x, ind, chr)
+# The following should probably be part of subset, with additional argument "mar".
+# Challenge is that we want to return an array, but number of 3rd dimension varies.
+# Probably want x[[chr]] to return array on its own.
+#
+element_feather_genoprob <-
+  function(x, chr) {
+    if(length(chr) != 1)
+      stop("need exactly one chr")
+    
+    # Make sure we have chr ID.
+    if(is.numeric(chr))
+      chr <- names(x$chr_dim)[chr]
+    
+    dnames <- x$chr_dim[[chr]]$dimnames
+    dims <- x$chr_dim[[chr]]$dim
+    
+    path <- ifelse(x$attr$is_x_chr[chr], x$featherX, x$feather)
+    probs <- feather::read_feather(path, columns = dnames[[3]])
+    
+    probs <- as.array(as.matrix(probs))
+    dim(probs) <- dims
+    dimnames(probs) <- dnames
+    
+    # Subset on individuals.
+    probs[x$ind, ,, drop=FALSE]
+  }
+#' @export
+#' @export [[.feather_genoprob
+#' @method [[ feather_genoprob
+#' 
+#' @rdname subset.feather_genoprob
+`[[.feather_genoprob` <-
+  function(x, chr) {
+    element_feather_genoprob(x, chr)
+  }
+#' @export
+#' @export $.feather_genoprob
+#' @method $ feather_genoprob
+#' 
+#' @rdname subset.feather_genoprob
+#`$.feather_genoprob` <-
+#  function(x, chr) {
+#    element_feather_genoprob(x, chr)
+#  }

@@ -33,11 +33,26 @@ cbind.feather_genoprob <-
     
     # paste stuff together
     for(i in 2:length(args)) {
-      if(nrow(args[[1]][[1]]) != nrow(args[[i]][[1]]) ||
-         !all(rownames(args[[1]][[1]]) == rownames(args[[i]][[1]])))
+      if(length(args[[1]]$ind) != length(args[[i]]$ind) ||
+         !all(args[[1]]$ind == args[[i]]$ind))
         stop("Input objects 1 and ", i, " have different individuals")
       
-      result <- c(result, args[[i]])
+#     result <- c(result, args[[i]])
+      
+      # This requires some care, as need to combine feathers
+      if(result$feather == args[[i]]$feather) {
+        result$chr_dim <- c(result$chr_dim, args[[i]]$chr_dim)
+        results$attr$is_x_chr <- c(results$attr$is_x_chr, args[[i]]$attr$is_x_chr)
+      }
+      else {
+        stop("cannot handle this yet")
+        
+        # Need to combine feathers here.
+        # Want to do that once, not every loop.
+        # read_feather using $ind and $chr_dim to subset.
+        # DO I need feather2calc_genoprob?
+        # Similar issue for rbind, but there we have to create new.
+      }
     }
     
     other_stuff <- c("is_x_chr")

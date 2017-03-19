@@ -17,32 +17,69 @@ Task: refactor this Rmd to use DOex and run some examples.
 
 ```{r}
 library(dplyr)
-library(qtl2convert)
 library(qtl2geno)
 library(qtl2scan)
-library(qtl2plot)
-
 library(feather)
 ```
 
 ```{r}
-load("C:/Temp/kidney.RData")
+if(!file.exists("DOex.zip")) {
+  dirpath <- paste0("https://raw.githubusercontent.com/rqtl/",
+                    "qtl2data/master/DOex")
+} else {
+  dirpath <- "."
+}
+file <- file.path(dirpath, "DOex.zip")
+DOex <- read_cross2(file)
 ```
 
-Which gene is Ace?
+Calculate genotype probabilities and convert to allele probabilities
 
+```{r}
+pr <- calc_genoprob(DOex, error_prob=0.002)
+apr <- genoprob_to_alleleprob(pr)
 ```
-idx <- which(annot.mrna$symbol == "Ace")
-addcovar <- covar[,-1]
 
-db.file <- "C:/Temp/genoprobs_kidney.feather"
+Write feather database of pr.
+
+```{r}
+fpr <- feather_genoprob(pr, "pr.feather", "feather")
+fapr <- feather_genoprob(apr, "apr.feather", "feather")
 ```
 
 ```{r}
-Nbatches = 1000
-Nsnps <- nrow(snps)
+dim(fapr[["X"]])
+```
+
+The following does not work well. Yet.
+
+```{r}
+try(dim(fapr$X))
+```
+
+```{r}
+dim(subset(fapr, ind=1:20, chr=c("2","3"))[["3"]])
+```
+
+Start of work on `cbind.feather_genoprob`. Major step is to create new feather when combining objects from different feathers. But don't want to propagate, and want to think about where to put the feather file, say in same directory as first object. But then need to work out naming conventions.
+
+```{r}
+knitr::knit_exit()
+```
+
+Set up batches for reading
+
+```{r}
+Nbatches = 45
+Nmar <- dim(apr[[1]])[3]
 # make SNPs split into Nbatches
-batches <-  split(1:Nsnps, ceiling(seq_along(1:Nsnps)/Nbatches))
+batches <-  split(1:Nmar, ceiling(seq_along(1:Nmar)/Nbatches))
+```
+
+Read pr many times.
+
+```{r}
+for(i in seq)
 ```
 
 LOD object to be produced
@@ -53,7 +90,7 @@ result <- NULL
 for (i in 1:length(batches)) {
 
   # fetch data from the database
-  tmp <- read_feather(db.file, batches[[i]])
+  tmp <- read_feather(db.file, columns = batches[[i]])
   print(i)
   
   # dimnames harcoded, ADD ASSERTIONS LATER 

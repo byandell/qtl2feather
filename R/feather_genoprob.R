@@ -6,36 +6,15 @@
 #' @param genoprob Object of class \code{"calc_genoprob"}. For details, see the
 #' \href{http://kbroman.org/qtl2/assets/vignettes/developer_guide.html}{R/qtl2 developer guide}
 #' and \code{\link[qtl2geno]{calc_genoprob}}.
-#' @param filename Name of file for feather database.
+#' @param filebase Base of fileame for feather database.
+#' @param dirname Directory for feather database.
 #'
-#' @return A list containing the following
-#' \itemize{
-#' \item \code{probs} - An object with information to access feather database.
-#' \item \code{map} - The genetic map as a list of vectors of marker positions.
-#' \item \code{grid} - A list of logical vectors, indicating which
-#'     positions correspond to a grid of markers/pseudomarkers. (may be
-#'     absent)
-#' \item \code{crosstype} - The cross type of the input \code{cross}.
-#' \item \code{is_x_chr} - Logical vector indicating whether chromosomes
-#'     are to be treated as the X chromosome or not, from input \code{cross}.
-#' \item \code{is_female} - Vector of indicators of which individuals are female, from input
-#'     \code{cross}.
-#' \item \code{cross_info} - Matrix of cross information for the
-#'     individuals, from input \code{cross}.
-#' \item \code{alleles} - Vector of allele codes, from input
-#'     \code{cross}.
-#' \item \code{alleleprobs} - Logical value (\code{FALSE}) that
-#'     indicates whether the probabilities are compressed to allele
-#'     probabilities, as from \code{\link{genoprob_to_alleleprob}}.
-#' \item \code{step} - the value of the \code{step} argument.
-#' \item \code{off_end} - the value of the \code{off_end} argument.
-#' \item \code{stepwidth} - the value of the \code{stepwidth} argument.
-#' \item \code{error_prob} - the value of the \code{error_prob} argument.
-#' \item \code{map_function} - the value of the \code{map_function} argument.
-#' }
+#' @return A list containing the attributes of \code{genoprob} and the address for the created feather database.
 #'
 #' @details
-#' To be added here
+#' The genotype probabilities are stored in 1-2 databases
+#' as a table of (indivduals*genotypes) x (positions). The first database has all autosome positions, 
+#' identified by marker or pseudomarker name. The optional second database is for the X chromosome if present.
 #'
 #' @export
 #' @keywords utilities
@@ -47,8 +26,52 @@
 #' fprobs <- feather_genoprob(probs, "my.feather")
 
 feather_genoprob <-
-function(genoprob, filename)
+function(genoprob, filebase, dirname = ".")
 {
-  ## fill in code here
-  genoprob
+  # Set up directory for feather objects.
+  if(!dir.exists(dirname))
+    stop(paste("directory", dirname, "does not exist"))
+  
+  # Get attributes from genoprob object.
+  out <- list(attr = attributes(genoprob))
+  
+  # Get dimensions and dimnames for chromosome information
+  out$chr_dim <- lapply(genoprob, function(x) attributes(x))
+  
+  # Identify individuals (for later subset use).
+  out$ind <- out$chr_dim[[1]]$dimnames[[1]]
+  
+  is_x_chr <- attr(genoprob, "is_x_chr")
+  
+  # Add feather addresses
+  if(missing(filebase))
+    stop("need to supply filebase")
+  out$feather <- file.path(dirname, paste(filebase, "feather", sep = "."))
+  if(any(is_x_chr))
+    out$featherX <- file.path(dirname, paste(filebase, "feather", sep = "_X."))
+  
+  # Turn list of 3D arrays into table
+  # Need to handle X chr separately!
+  tbl_array <- function(x) {
+    out <- dplyr::tbl_df(matrix(x,, dim(x)[3]))
+    names(out) = dimnames(x)[[3]]
+    out
+  }
+  if(any(!is_x_chr)) {
+    probs <- sapply(subset(genoprob, chr = !is_x_chr), tbl_array)
+    probs <- dplyr::bind_cols(probs)
+    feather::write_feather(probs, 
+                           out$feather)
+  }
+  # X matrix probably different size
+  if(any(is_x_chr))
+    feather::write_feather(tbl_array(genoprob[[which(is_x_chr)]]),
+                           out$featherX)
+  
+  for(a in names(out$attr)[-1])
+    attr(out, a) <- out$attr[[a]]
+  
+  class(out) <- c("feather_genoprob", class(out))
+  
+  out
 }
