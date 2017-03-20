@@ -2,12 +2,10 @@
 % Please edit documentation in R/subset_feather_genoprob.R
 \name{subset.feather_genoprob}
 \alias{subset.feather_genoprob}
-\alias{[.feather_genoprob}
 \title{Subsetting genotype probabilities}
 \usage{
-\method{subset}{feather_genoprob}(x, ind = NULL, chr = NULL, ...)
-
-\method{[}{feather_genoprob}(x, ind = NULL, chr = NULL)
+\method{subset}{feather_genoprob}(x, ind = NULL, chr = NULL, mar = NULL,
+  ...)
 }
 \arguments{
 \item{x}{Genotype probabilities as output from \code{\link{feather_genoprob}}.}
@@ -17,6 +15,8 @@ values, or character string IDs}
 
 \item{chr}{A vector of chromosomes: logical values, or character
 string IDs. Numbers are interpreted as character string IDs.}
+
+\item{mar}{A vector of marker names as character string IDs.}
 
 \item{...}{Ignored.}
 }

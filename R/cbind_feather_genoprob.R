@@ -17,21 +17,26 @@
 #' map <- insert_pseudomarkers(grav2$gmap, step=1)
 #' probsA <- calc_genoprob(grav2[1:5,1:2], map, error_prob=0.002)
 #' probsB <- calc_genoprob(grav2[1:5,3:4], map, error_prob=0.002)
-#' fprobsA <- feather_genoprob(probsA, "exampleA")
-#' fprobsB <- feather_genoprob(probsB, "exampleB")
-#' fprobs <- cbind(fprobsA, fprobsB, fbase = "exampleAB")
+#' fprobsA <- feather_genoprob(probsA, "exampleAc")
+#' fprobsB <- feather_genoprob(probsB, "exampleBc")
+#' fprobs <- cbind(fprobsA, fprobsB, fbase = "exampleABc")
 #'
 #' @export
 #' @export cbind.feather_genoprob
 #' @method cbind feather_genoprob
 #'
-cbind.feather_genoprob <-
-    function(..., fbase, fdir = dirname(result$feather["A"]))
-{
-    args <- list(...)
-    
-    # to cbind: probs, is_x_chr
-    # to pass through (must match): crosstype, alleles, alleleprobs
+cbind.feather_genoprob <- function(..., fbase, fdir = NULL) {
+  # to cbind: probs, is_x_chr
+  # to pass through (must match): crosstype, alleles, alleleprobs
+      
+  bind_feather(list(...),
+               check_cbind,
+               append_chr,
+               cbind,
+               fbase, fdir)
+}
+bind_feather <- function(args, check_fn, append_fn, bind_fn,
+                         fbase, fdir = NULL) {
     
     result <- args[[1]]
     if(!inherits(result, "feather_genoprob"))
@@ -41,40 +46,25 @@ cbind.feather_genoprob <-
 
     attrs <- attributes(result)
     result <- unclass(result)
+    if(is.null(fdir))
+      fdir <- dirname(result$feather["A"])
     if(!dir.exists(fdir))
       stop("directory", fdir, "does not exist")
+    
+    check_fn(args)
     
     # paste stuff together
     diff_feather <- 0
     for(i in 2:length(args)) {
-      if(!inherits(args[[i]], "feather_genoprob"))
-        stop("argument ", i, "is not of class feather_genoprob")
-
-      argsi <- unclass(args[[i]])
-      
-      if(length(result$ind) != length(argsi$ind) ||
-         !all(result$ind == argsi$ind))
-        stop("Input objects 1 and ", i, " have different individuals")
-      
       # This requires some care, as need to combine feathers
-      diff_feather <- (result$feather["A"] != argsi$feather["A"])
+      diff_feather <- (result$feather["A"] != unclass(args[[i]])$feather["A"])
       if(diff_feather) {
         diff_feather <- i
         break
       }
-      
-      new_chr <- is.na(match(argsi$chr, result$chr))
-      if(!any(new_chr))
-        stop("argument ", i, "has no new chromosomes")
-      if(any(!new_chr))
-        warning("duplicate chr ", 
-                paste(argsi$chr[!new_chr], collapse = ","),
-                " in argument ", i, "ignored")
-    
-      new_chr <- argsi$chr[new_chr]
-      result$chr <- c(result$chr, new_chr)
-      result$chr_dim <- c(result$chr_dim, argsi$chr_dim[new_chr])
-      attrs$is_x_chr <- c(attrs$is_x_chr, attr(args[[i]], "is_x_chr")[new_chr])
+      out <- append_fn(result, i, args[[i]], attrs)
+      result <- out$result
+      attrs <- out$attrs
     }
 
     if(diff_feather == 2) {
@@ -103,8 +93,43 @@ cbind.feather_genoprob <-
     # Convert rest to calc_genoprob and append in usual way.
     for(i in seq(diff_feather, length(args))) {
       argsi <- feather2calc_genoprob(args[[i]])
-      result <- cbind(result, argsi)
+      result <- bind_fn(result, argsi)
     }
 
     feather_genoprob(result, fbase, fdir)
+}
+
+check_cbind <- function(args) {
+  result <- unclass(args[[1]])
+  
+  for(i in 2:length(args)) {
+    if(!inherits(args[[i]], "feather_genoprob"))
+      stop("Input object ", i, "is not of class feather_genoprob")
+    
+    argsi <- unclass(args[[i]])
+    if(length(result$ind) != length(argsi$ind) ||
+       !all(result$ind == argsi$ind))
+      stop("Input objects 1 and ", i, " have different individuals")
+  }
+}
+
+append_chr <- function(result, i, argsi, attrs) {
+  is_x_chr_i <- attr(argsi, "is_x_chr")
+  argsi <- unclass(argsi)
+  
+  new_chr <- is.na(match(argsi$chr, result$chr))
+  if(!any(new_chr))
+    stop("Input object ", i, "has no new chromosomes")
+  if(any(!new_chr))
+    warning("duplicate chr ", 
+            paste(argsi$chr[!new_chr], collapse = ","),
+            " in input object ", i, " ignored")
+  
+  # Append new chromosomes.
+  new_chr <- argsi$chr[new_chr]
+  result$chr <- c(result$chr, new_chr)
+  result$chr_dim <- c(result$chr_dim, argsi$chr_dim[new_chr])
+  attrs$is_x_chr <- c(attrs$is_x_chr, is_x_chr_i[new_chr])
+  
+  list(result = result, attrs = attrs)
 }

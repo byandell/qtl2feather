@@ -10,14 +10,13 @@
 #' values, or character string IDs
 #' @param chr A vector of chromosomes: logical values, or character
 #' string IDs. Numbers are interpreted as character string IDs.
+#' @param mar A vector of marker names as character string IDs. 
 #' @param ... Ignored.
 #'
 #' @return The input genotype probabilities, with the selected
 #' individuals and/or chromsomes.
 #'
 #' @export
-#' @export subset.feather_genoprob
-#' @method subset feather_genoprob
 #' 
 #' @keywords utilities
 #'
@@ -32,91 +31,65 @@
 #' # keep just chromosome 2
 #' prsub2 <- fpr[,2]
 subset.feather_genoprob <-
-    function(x, ind=NULL, chr=NULL, ...)
+    function(x, ind=NULL, chr=NULL, mar=NULL, ...)
 {
-    if(is.null(ind) && is.null(chr))
-        stop("You must specify either ind or chr.")
+  if(is.null(ind) && is.null(chr) && is.null(mar))
+    stop("You must specify either ind or chr or mar.")
     
-    attrs <- attributes(x)
-    x <- unclass(x)
+  attrs <- attributes(x)
+  x <- unclass(x)
     
-    chrID <- x$chr
-    n_chr <- length(chrID)
-    if(!is.null(chr)) {
-        if(is.logical(chr)) {
-            if(length(chr) != n_chr) {
-                stop("length(chr) [", length(chr), "] != no. chr in x [",
-                     n_chr, "]")
-            }
-            chr <- chrID[chr] # convert to character strings
-        }
-        else {
-            chrindex <- match(chr, chrID)
-            if(any(is.na(chrindex))) {
-                stop("Some chr not found: ",
-                     paste(chr[is.na(chrindex)], collapse=", "))
-            }
-            chr <- chrID[chrindex] # character strings
-        }
-        if(length(chr) == 0)
-            stop("Must retain at least one chromosome.")
-      
-        # Reduce to pointers to kept chromosomes.
-        x$chr <- chr
-    }
+  if(!is.null(chr))
+    x$chr <- get_dimension(chr, x$chr, type = "chromosome")
     
-    indID <- x$ind
-    
-    n_ind <- length(indID)
-    if(!is.null(ind)) {
-        if(is.logical(ind)) {
-            if(length(ind) != n_ind) {
-                stop("length(ind) [", length(ind), "] != no. ind in x [",
-                     n_ind, "]")
-            }
-            ind <- indID[ind] # convert to character strings
-        }
-        else if(is.numeric(ind)) {
-            if(any(ind < 1 || ind > n_ind))
-                stop("Numeric ind out of allowed range [1 - ", n_ind, "]")
-            ind <- indID[ind] # convert to character strings
-        }
-        else {
-            indindex <- match(ind, indID)
-            if(any(is.na(indindex))) {
-                stop("Some individuals not found: ",
-                     paste(ind[is.na(indindex)], collapse=", "))
-            }
-            ind <- indID[indindex]
-        }
-        if(length(ind) == 0)
-            stop("Must retain at least one individual.")
-      
-        x$ind <- ind
-    }
-    
-    # Set up attributes.
-    ignore <- match(c("names","class"), names(attrs))
-    for(a in names(attrs)[-ignore])
-      attr(x, a) <- attrs[[a]]
-    
-    class(x) <- attrs$class
-    
-    x
-}
+  if(!is.null(ind))
+    x$ind <- get_dimension(ind, x$ind, type = "individual")
 
+  if(!is.null(mar))
+    x$mar <- get_dimension(mar, x$mar, type = "marker")
+
+  # Set up attributes.
+  ignore <- match(c("names","class"), names(attrs))
+  for(a in names(attrs)[-ignore])
+    attr(x, a) <- attrs[[a]]
+    
+  class(x) <- attrs$class
+    
+  x
+}
+get_dimension <- function(ind, indID, type = "individual") {
+  n_ind <- length(indID)
+  if(is.logical(ind)) {
+    if(length(ind) != n_ind) {
+      stop("length(ind) [", length(ind), "] != number of ", type, "s in x [",
+           n_ind, "]")
+    }
+    ind <- indID[ind] # convert to character strings
+  }
+  else if(is.numeric(ind)) {
+    if(any(ind < 1 || ind > n_ind))
+      stop("Numeric ind out of allowed range [1 - ", n_ind, "]")
+    ind <- indID[ind] # convert to character strings
+  }
+  else {
+    indindex <- match(ind, indID)
+    if(any(is.na(indindex))) {
+      stop("Some ", type, "s not found: ",
+           paste(ind[is.na(indindex)], collapse=", "))
+    }
+    ind <- indID[indindex]
+  }
+  if(length(ind) == 0)
+    stop("Must retain at least one ", type, ".")
+  
+  ind
+}
 #' @export
-#' @export [.feather_genoprob
-#' @method [ feather_genoprob
-#' 
-#' @rdname subset.feather_genoprob
 `[.feather_genoprob` <-
-    function(x, ind=NULL, chr=NULL)
-    subset(x, ind, chr)
-# The following should probably be part of subset, with additional argument "mar".
-# Challenge is that we want to return an array, but number of 3rd dimension varies.
-# Probably want x[[chr]] to return array on its own.
-#
+    function(x, ind=NULL, chr=NULL, mar=NULL)
+    subset(x, ind, chr, mar)
+
+# Return an array for chromosome, subset by individuals and markers.
 element_feather_genoprob <-
   function(x, chr) {
     if(length(chr) != 1)
@@ -131,6 +104,12 @@ element_feather_genoprob <-
     
     dnames <- x$chr_dim[[chr]]$dimnames
     dims <- x$chr_dim[[chr]]$dim
+
+    m <- which(dnames[[3]] %in% x$mar)
+    if(!length(m))
+      return(NULL)
+    dnames[[3]] <- dnames[[3]][m]
+    dims[3] <- length(m)
     
     path <- ifelse(is_x_chr[chr], x$feather["X"], x$feather["A"])
     probs <- feather::read_feather(path, columns = dnames[[3]])
@@ -139,21 +118,15 @@ element_feather_genoprob <-
     dim(probs) <- dims
     dimnames(probs) <- dnames
     
-    # Subset on individuals.
+    # Subset on individuals and markers.
     probs[x$ind, ,, drop=FALSE]
   }
 #' @export
-#' @export [[.feather_genoprob
-#' @method [[ feather_genoprob
-#' 
 `[[.feather_genoprob` <-
   function(x, chr) {
     element_feather_genoprob(x, chr)
   }
 #' @export
-#' @export $.feather_genoprob
-#' @method $ feather_genoprob
-#' 
 `$.feather_genoprob` <-
   function(x, chr) {
     x[[chr]]

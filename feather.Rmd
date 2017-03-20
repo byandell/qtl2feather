@@ -47,33 +47,88 @@ fpr <- feather_genoprob(pr, "pr.feather", "feather")
 fapr <- feather_genoprob(apr, "apr.feather", "feather")
 ```
 
+### Selecting one chromosome
+
+Selecting a chromosome causes reading from feather database and creation of an array.
+
 ```{r}
 dim(fapr[["X"]])
 ```
 
-The following does not work well. Yet.
+Alternate form.
 
 ```{r}
 dim(fapr$X)
 ```
 
+Functions `names()` and `length()` both work properly.
+
 ```{r}
 names(fapr)
 ```
+```{r}
+length(fapr)
+```
+
+Here are the names of elements in a `feather_genoprob` object:
 
 ```{r}
 names(unclass(fapr))
 ```
 
+### Subsetting by ind, chr, mar
+
+Subsetting using `subset(object,ind,chr,mar)` or `[ind,chr,mar]` only adjusts the vector of
+individuals, chromosomes and markers, but does not alter the feather database.
+
 ```{r}
-dim(subset(fapr, ind=1:20, chr=c("2","3"))[["3"]])
+dim(fapr[1:20, c("2","3")][["3"]])
 ```
+
+```{r}
+f2 <- fapr[,"2"]
+f23 <- fapr[,c("2","3")]
+fx <- fapr[,"X"]
+```
+
+### Binding by columns or rows.
+
+Binding by columns or rows will cause creation of a new feather database if input objects arose from different feather databases. However, if they come from the same, then it reuses the one feather database. See `example(cbind.feather_genoprob)` and `example(rbind.feather_genoprob)` with objects having distinct feather databases.
+
+```{r}
+newf23 <- cbind(f2,f23)
+```
+
+Row bind.
+
+```{r}
+f23a <- fapr[1:20, c("2","3")]
+f23b <- fapr[40:79, c("2","3")]
+f23 <- rbind(f23a, f23b)
+```
+
+Subset on markers. This way only extracts the selected `markers` from feather database before creating the array.
+
+```{r}
+markers <- dimnames(fapr$X)[[3]][1:10]
+dim(fapr[,,markers]$X)
+```
+
+This way extracts all markers on `X`, creates the array, then subsets on selected `markers`.
+
+```{r}
+markers <- dimnames(fapr$X)[[3]][1:10]
+dim(fapr$X[,,markers])
+```
+
 
 Start of work on `cbind.feather_genoprob`. Major step is to create new feather when combining objects from different feathers. But don't want to propagate, and want to think about where to put the feather file, say in same directory as first object. But then need to work out naming conventions.
 
 ```{r}
 knitr::knit_exit()
 ```
+
+THE FOLLOWING HAS NOT BEEN REWRITTEN.
 
 Set up batches for reading
 

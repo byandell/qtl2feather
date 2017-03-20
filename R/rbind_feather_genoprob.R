@@ -18,58 +18,57 @@
 #' map <- insert_pseudomarkers(grav2$gmap, step=1)
 #' probsA <- calc_genoprob(grav2[1:5,], map, error_prob=0.002)
 #' probsB <- calc_genoprob(grav2[6:12,], map, error_prob=0.002)
-#' probs <- rbind(probsA, probsB)
+#' fprobsA <- feather_genoprob(probsA, "exampleAr")
+#' fprobsB <- feather_genoprob(probsB, "exampleBr")
+#' fprobs <- rbind(fprobsA, fprobsB, fbase = "exampleABr")
 #'
 #' @export
 #' @export rbind.feather_genoprob
 #' @method rbind feather_genoprob
 #' 
 rbind.feather_genoprob <-
-    function(..., fbase, fdir = dirname(result$feather["A"]))
+    function(..., fbase, fdir = NULL)
 {
-    args <- list(...)
+  # to rbind: the data
+  # to pass through (must match): crosstype, is_x_chr, alleles, alleleprobs
+  
+  args <- list(...)
     
-    # to rbind: the data
-    # to pass through (must match): crosstype, is_x_chr, alleles, alleleprobs
-    
-    result <- args[[1]]
-    if(length(args) == 1) return(result)
-    
-    # check that things match
-    other_stuff <- c("crosstype", "is_x_chr", "alleles", "alleleprobs")
-    for(i in 2:length(args)) {
-      if(!inherits(args[[i]], "feather_genoprob"))
-        stop("argument ", i, "is not of class feather_genoprob")
-      for(obj in other_stuff) {
-        if(!is_same(attr(args[[1]], obj), attr(args[[i]], obj)))
-          stop("Input objects 1 and ", i, " differ in their ", obj)
-      }
+  bind_feather(list(...),
+               check_rbind,
+               append_ind,
+               rbind,
+               fbase, fdir)
+}
+check_rbind <- function(args) {
+  result <- args[[1]]
+  # check that things match
+  other_stuff <- c("crosstype", "is_x_chr", "alleles", "alleleprobs")
+  for(i in 2:length(args)) {
+    if(!inherits(args[[i]], "feather_genoprob"))
+      stop("argument ", i, "is not of class feather_genoprob")
+    for(obj in other_stuff) {
+      if(!identical(attr(result, obj), attr(args[[i]], obj)))
+        stop("Input objects 1 and ", i, " differ in their ", obj)
     }
-    
-    attrs <- attributes(result)
-    result <- unclass(result)
-    
-    # paste stuff together
-    diff_feather <- FALSE
-    for(i in 1:length(args)) {
-      argsi <- unclass(args[[i]])
-      if(!is_same(names(args[[1]]), names(args[[i]])))
-        stop("Input objects 1 and ", i, " have different chromosome names")
-      for(chr in names(args[[1]])) {
-        dimn1 <- dimnames(args[[1]][[chr]])
-        dimni <- dimnames(args[[i]][[chr]])
-        if(!is_same(dimn1[-1], dimni[-1]))
-          stop("Input objects 1 and ", i, " differ in shape on chromosome ", chr)
-        
-        result[[chr]][index[[i]],,] <- args[[i]][[chr]]
-        rownames(result[[chr]])[index[[i]]] <- rownames(args[[i]][[chr]])
-      }
-    }
-    
-    # paste in the attributes
-    for(obj in other_stuff)
-      attr(result, obj) <- attr(args[[1]], obj)
-    class(result) <- class(args[[1]])
-    
-    result
+    if(!identical(names(result), names(args[[i]])))
+      stop("Input objects 1 and ", i, " have different chromosome names")
+  }
+}
+append_ind <- function(result, i, argsi, attrs) {
+  argsi <- unclass(argsi)
+  
+  new_ind <- is.na(match(argsi$ind, result$ind))
+  if(!any(new_ind))
+    stop("argument ", i, "has no new individuals")
+  if(any(!new_ind))
+    warning("duplicate ind ", 
+            paste(argsi$ind[!new_ind], collapse = ","),
+            " in input object ", i, " ignored")
+      
+  # Append new individuals.
+  new_ind <- argsi$ind[new_ind]
+  result$ind <- c(result$ind, new_ind)
+  
+  list(result = result, attrs = attrs)
 }

@@ -4,8 +4,7 @@
 \alias{rbind.feather_genoprob}
 \title{Join genotype probabilities for different individuals}
 \usage{
-\method{rbind}{feather_genoprob}(..., fbase,
-  fdir = dirname(result$feather["A"]))
+\method{rbind}{feather_genoprob}(..., fbase, fdir = NULL)
 }
 \arguments{
 \item{...}{Genotype probability objects as produced by
@@ -30,6 +29,8 @@ grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
 map <- insert_pseudomarkers(grav2$gmap, step=1)
 probsA <- calc_genoprob(grav2[1:5,], map, error_prob=0.002)
 probsB <- calc_genoprob(grav2[6:12,], map, error_prob=0.002)
-probs <- rbind(probsA, probsB)
+fprobsA <- feather_genoprob(probsA, "exampleAr")
+fprobsB <- feather_genoprob(probsB, "exampleBr")
+fprobs <- rbind(fprobsA, fprobsB, fbase = "exampleABr")
 
 }

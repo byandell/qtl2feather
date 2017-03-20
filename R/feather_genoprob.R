@@ -54,20 +54,26 @@ function(genoprob, fbase, fdir = ".")
   # Turn list of 3D arrays into table
   # Need to handle X chr separately!
   tbl_array <- function(x) {
-    result <- dplyr::tbl_df(matrix(x,, dim(x)[3]))
-    names(result) = dimnames(x)[[3]]
-    result
+    dims <- dim(x)
+    dnames <- dimnames(x)
+    dim(x) <- c(prod(dims[1:2]), dims[3])
+    dimnames(x) <- list(NULL, dnames[[3]])
+    as.data.frame(x)
   }
   if(any(!is_x_chr)) {
     probs <- sapply(subset(genoprob, chr = !is_x_chr), tbl_array)
     probs <- dplyr::bind_cols(probs)
+    result$mar <- names(probs)
     feather::write_feather(probs, 
                            result$feather["A"])
   }
   # X matrix probably different size
-  if(any(is_x_chr))
-    feather::write_feather(tbl_array(genoprob[[which(is_x_chr)]]),
+  if(any(is_x_chr)) {
+    probs <- tbl_array(genoprob[[which(is_x_chr)]])
+    result$mar <- c(result$mar, names(probs))
+    feather::write_feather(probs,
                            result$feather["X"])
+  }
   
   # Set up attributes.
   ignore <- match(c("names","class"), names(attrs))
@@ -79,8 +85,8 @@ function(genoprob, fbase, fdir = ".")
   result
 }
 #' @export
-#' @export names.feather_genoprob
-#' @method names feather_genoprob
-#' 
 names.feather_genoprob <- function(x)
   unclass(x)$chr
+#' @export
+length.feather_genoprob <- function(x)
+  length(unclass(x)$chr)
