@@ -16,20 +16,21 @@ The solution would be to store data in some database and load just a slice you n
 Task: refactor this Rmd to use DOex and run some examples.
 
 ```{r}
-library(dplyr)
-library(qtl2geno)
-library(qtl2scan)
-library(qtl2feather)
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(qtl2geno)
+  library(qtl2scan)
+  library(qtl2feather)
+})
 ```
 
 ```{r}
-if(!file.exists("DOex.zip")) {
+dirpath <- "~/Documents/Research/rqtl/data/"
+if(!file.exists(file <- file.path(dirpath, "DOex.zip"))) {
   dirpath <- paste0("https://raw.githubusercontent.com/rqtl/",
                     "qtl2data/master/DOex")
-} else {
-  dirpath <- "."
+  file <- file.path(dirpath, "DOex.zip")
 }
-file <- file.path(dirpath, "DOex.zip")
 DOex <- read_cross2(file)
 ```
 
@@ -43,8 +44,8 @@ apr <- genoprob_to_alleleprob(pr)
 Write feather database of pr.
 
 ```{r}
-fpr <- feather_genoprob(pr, "pr.feather", "feather")
-fapr <- feather_genoprob(apr, "apr.feather", "feather")
+fpr <- feather_genoprob(pr, "pr", "feather")
+fapr <- feather_genoprob(apr, "apr", "feather")
 ```
 
 ### Selecting one chromosome
@@ -75,6 +76,25 @@ Here are the names of elements in a `feather_genoprob` object:
 ```{r}
 names(unclass(fapr))
 ```
+
+But better to use the helper `feather_genoprob_list`:
+
+```{r}
+names(feather_genoprob_list(fapr))
+```
+
+```{r}
+feather_genoprob_list(fapr, "feather")
+```
+
+```{r}
+feather_genoprob_list(fapr, "dim")
+```
+
+```{r}
+sapply(feather_genoprob_list(fapr, "ind","chr","mar"), length)
+```
+
 
 ### Subsetting by ind, chr, mar
 
@@ -121,57 +141,48 @@ markers <- dimnames(fapr$X)[[3]][1:10]
 dim(fapr$X[,,markers])
 ```
 
+## Time trial simulation
+
+Compare times to create `pr` once and to Read `fpr` 100 times.
+
 ```{r}
-knitr::knit_exit()
+system.time(pr <- calc_genoprob(DOex, error_prob=0.002))
 ```
 
-THE FOLLOWING HAS NOT BEEN REWRITTEN.
-
-Set up batches for reading
-
 ```{r}
-Nbatches = 45
-Nmar <- dim(apr[[1]])[3]
-# make SNPs split into Nbatches
-batches <-  split(1:Nmar, ceiling(seq_along(1:Nmar)/Nbatches))
+system.time({
+  for(i in seq(100))
+    fpr <- feather_genoprob(pr, "pr", "feather")
+})
 ```
 
-Read pr many times.
-
 ```{r}
-for(i in seq)
+tmpfile <- tempfile()
+saveRDS(pr, file = tmpfile)
+size_pr <- file.size(tmpfile) * 1e-6
+unlink(tmpfile)
 ```
 
-LOD object to be produced
+The `pr` object is `r format(object.size(pr), units = "MB")` in `R` or `r size_pr` Mb if saved as RDS file, while the `fpr` object is `r format(object.size(fpr), units = "MB")` in R with additional
+`r sum(file.size(feather_genoprob_list(fpr, "feather"))) * 1e-6` Mb for saved feather databases.
+
+#### Time to extract chromosome information.
+
+Extract chromosome `"2"` 100 times.
 
 ```{r}
-result <- NULL
+system.time({
+  for(i in seq(100))
+    tmp <- fpr[["2"]]
+})
+```
 
-for (i in 1:length(batches)) {
-
-  # fetch data from the database
-  tmp <- read_feather(db.file, columns = batches[[i]])
-  print(i)
-  
-  # dimnames harcoded, ADD ASSERTIONS LATER 
-  tmp.snps <- names(tmp)
-  tmp.probs <- as.array(as.matrix(tmp))
-  dim(tmp.probs) <- c(nrow(tmp.probs) %/% 8, 8, ncol(tmp.probs))
-  dimnames(tmp.probs) <- list(annot.samples$Mouse.ID, LETTERS[1:8], tmp.snps)
-  
-  # convert to qtl2 format
-  probs <- probs_doqtl_to_qtl2(tmp.probs, snps[tmp.snps,], pos_column = "bp")
-  chrs <- unique(snps[tmp.snps,"chr"])
-  
-  tmp.fit <- scan1(genoprobs=probs, 
-               kinship=Glist[chrs],
-               pheno=expr.mrna[,idx], 
-               addcovar=addcovar, 
-               cores=1, 
-               reml=TRUE)
-  
-  # save LOD scores to results
-  result <- rbind(result, tmp.fit$lod)
-}
+Extract first 50 markers from chromosome `"2"` 100 times.
+```{r}
+markers <- feather_genoprob_list(fpr, "dimnames")[["2"]][[3]][1:50]
+system.time({
+  for(i in seq(100))
+    tmp <- fpr[["2"]]
+})
 ```
 

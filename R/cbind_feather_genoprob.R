@@ -128,7 +128,8 @@ append_chr <- function(result, i, argsi, attrs) {
   # Append new chromosomes.
   new_chr <- argsi$chr[new_chr]
   result$chr <- c(result$chr, new_chr)
-  result$chr_dim <- c(result$chr_dim, argsi$chr_dim[new_chr])
+  result$dim <- cbind(result$dim, argsi$dim[, new_chr, drop = FALSE])
+  result$dim <- c(result$dimnames, argsi$dimnames[new_chr])
   attrs$is_x_chr <- c(attrs$is_x_chr, is_x_chr_i[new_chr])
   
   list(result = result, attrs = attrs)

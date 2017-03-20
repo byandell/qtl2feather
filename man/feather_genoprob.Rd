@@ -16,7 +16,17 @@ and \code{\link[qtl2geno]{calc_genoprob}}.}
 \item{fdir}{Directory for feather database.}
 }
 \value{
-A list containing the attributes of \code{genoprob} and the address for the created feather database.
+A list containing the attributes of \code{genoprob} 
+and the address for the created feather database. Access components with \code{\link{feather_genoprob_list}}.
+Components are:
+\itemize{
+\item \code{dim} - List of all dimensions of 3-D arrays.
+\item \code{dimnames} - List of all dimension names of 3-D arrays.
+\item \code{chr} - Vector of (subset of) chromosome names for this object.
+\item \code{ind} - Vector of (subset of) individual names for this object.
+\item \code{mar} - Vector of (subset of) marker names for this object.
+\item \code{feather} - Names of feather databases: \code{A} = autosome database, \code{X} = X chromosome database (if needed).
+}
 }
 \description{
 Uses package feather to convert R object created in R/qtl2geno for fast access.
@@ -29,7 +39,8 @@ identified by marker or pseudomarker name. The optional second database is for t
 \examples{
 library(qtl2geno)
 grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
-probs <- calc_genoprob(grav2, step=1, error_prob=0.002)
+map <- insert_pseudomarkers(grav2$gmap, step=1)
+probs <- calc_genoprob(grav2, map, error_prob=0.002)
 fprobs <- feather_genoprob(probs, "my.feather")
 }
 \keyword{utilities}

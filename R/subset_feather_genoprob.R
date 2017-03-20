@@ -102,8 +102,8 @@ element_feather_genoprob <-
     if(is.numeric(chr))
       chr <- x$chr[chr]
     
-    dnames <- x$chr_dim[[chr]]$dimnames
-    dims <- x$chr_dim[[chr]]$dim
+    dnames <- x$dimnames[[chr]]
+    dims <- x$dim[,chr]
 
     m <- which(dnames[[3]] %in% x$mar)
     if(!length(m))

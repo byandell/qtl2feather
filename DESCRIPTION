@@ -1,10 +1,10 @@
 Package: qtl2feather
-Version: 0.2-0
-Date: 2017-03-19
+Version: 0.2-1
+Date: 2017-03-20
 Title: Feather Database for qtl2 genotype probabilities
 Description: Functions to rbind, cbind and subset `calc_genoprob` objects.
-Author: Petr Simecek Petr Simecek <Petr.Simecek@jax.org> and Brian S Yandell <byandell@wisc.edu>
-Maintainer: Petr Simecek Petr Simecek <Petr.Simecek@jax.org>
+Author: Petr Simecek <Petr.Simecek@jax.org> and Brian S Yandell <byandell@wisc.edu>
+Maintainer: Petr Simecek <Petr.Simecek@jax.org>
 Depends:
     R (>= 3.1.0)
 Imports:

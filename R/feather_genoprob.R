@@ -9,7 +9,17 @@
 #' @param fbase Base of fileame for feather database.
 #' @param fdir Directory for feather database.
 #'
-#' @return A list containing the attributes of \code{genoprob} and the address for the created feather database.
+#' @return A list containing the attributes of \code{genoprob} 
+#' and the address for the created feather database. Access components with \code{\link{feather_genoprob_list}}.
+#' Components are:
+#' \itemize{
+#' \item \code{dim} - List of all dimensions of 3-D arrays.
+#' \item \code{dimnames} - List of all dimension names of 3-D arrays.
+#' \item \code{chr} - Vector of (subset of) chromosome names for this object.
+#' \item \code{ind} - Vector of (subset of) individual names for this object.
+#' \item \code{mar} - Vector of (subset of) marker names for this object.
+#' \item \code{feather} - Names of feather databases: \code{A} = autosome database, \code{X} = X chromosome database (if needed).
+#' }
 #'
 #' @details
 #' The genotype probabilities are stored in 1-2 databases
@@ -22,7 +32,8 @@
 #' @examples
 #' library(qtl2geno)
 #' grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
-#' probs <- calc_genoprob(grav2, step=1, error_prob=0.002)
+#' map <- insert_pseudomarkers(grav2$gmap, step=1)
+#' probs <- calc_genoprob(grav2, map, error_prob=0.002)
 #' fprobs <- feather_genoprob(probs, "my.feather")
 
 feather_genoprob <-
@@ -36,10 +47,14 @@ function(genoprob, fbase, fdir = ".")
   attrs <- attributes(genoprob)
   
   # Get dimensions and dimnames for chromosome information
-  result <- list(chr_dim = lapply(genoprob, function(x) attributes(x)),
-              # Identify individuals (for later subset use).
-              chr = names(genoprob))
-  result$ind <- result$chr_dim[[1]]$dimnames[[1]]
+  chr_dim <- lapply(genoprob, function(x) attributes(x))
+  result <- list(dim = sapply(chr_dim, function(x) x$dim),
+                 dimnames = lapply(chr_dim, function(x) x$dimnames))
+  
+  # Identify chromosome, individuals, markers (for later subset use).
+  result$chr <- names(genoprob)
+  result$ind <- result$dimnames[[1]][[1]]
+  result$mar <- unlist(lapply(result$dimnames, function(x) x[[3]]))
   
   is_x_chr <- attr(genoprob, "is_x_chr")
   
@@ -63,14 +78,12 @@ function(genoprob, fbase, fdir = ".")
   if(any(!is_x_chr)) {
     probs <- sapply(subset(genoprob, chr = !is_x_chr), tbl_array)
     probs <- dplyr::bind_cols(probs)
-    result$mar <- names(probs)
     feather::write_feather(probs, 
                            result$feather["A"])
   }
   # X matrix probably different size
   if(any(is_x_chr)) {
     probs <- tbl_array(genoprob[[which(is_x_chr)]])
-    result$mar <- c(result$mar, names(probs))
     feather::write_feather(probs,
                            result$feather["X"])
   }
