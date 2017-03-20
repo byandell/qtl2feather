@@ -1,0 +1,51 @@
+---
+title: "Use Cases for calc_genoprob"
+author: "Brian S. Yandell"
+date: "2/16/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This documents use cases for `calc_genoprob` objects in package `Rqtl/qtl2geno`. The `R/qtl2feather` is intended to meet these use cases with new `subset`, `rbind`, and `cbind` and other operators for an S3 class `feather_genoprob`. The routine `feather_genoprob()` creates a [feather](https://github.com/wesm/feather) database for the `probs` part of a `calc_genoprobs` object.
+
+Use `grep` to find use cases in `R/*.R` files. After looking for `genoprob` and `probs`,
+here are the cases that remain unsolved.
+
+* `RcppExports.R` | various routines pass `probs` to `C++` subroutines in `R/qtl2geno` and `R/qtl2scan`
+* `vapply,lapply,sapply`
+    + `calc_kinship` and `scan1` get `mar` dimension acros `chr` 
+    + feather: `feather_genoprob_list(genoprobs, dim)[3,]`
+    + `genoprob_col2drop` uses `lapply(probs, genoprobs_col2drop)`
+    + `sapply(probs, dim)` used in some function exaples
+* `genoprob_to_alleleprob` and `genoprob_to_snpprob` each return a `calc_genoprob` object
+    + would have to convert post-hoc to `feather_genoprob` each time if desired
+* `probs_to_grid` used only by `calc_kinship`
+    + modifies list of `chr` objects but attributes needed; assumes `calc_genoprob`
+* `scan1` and `scan1_pg` subsets as `genoprobs[[chr]][these2keep,-Xcol2drop,,drop=FALSE]`
+    + faster with feather as `subset(genoprobs, ind=these2keep)[[chr]][,-Xcol2drop,,drop=FALSE]`
+
+* stuff in `qtl2convert`?
+* tests in `tests/testthat` seem OK
+
+
+routine                  |  use case
+------------------------ | --------------------------------------
+`R/qtl2geno` |
+`RcppExports.R` | pass argument `probs` or `genoprobs` to various subroutines
+`calc_kinship.R` |    `vapply(probs, function(a) dim(a)[3], 0)[chrs]`
+`genoprob_to_alleleprob.R` | `genoprob_to_alleleprob(probs) #` returns `calc_genoprob` object
+`probs_to_grid.R` | `probs_to_grid(probs, grid) #` returns list but watch out
+`probs_to_grid.R` | `sapply(probs, dim)`
+ |
+`R/qtl2scan` |
+`RcppExports.R` | pass argument `probs` or `genoprobs` to various subroutines
+`genoprob_col2drop.R` | `lapply(probs, genoprobs_col2drop)`
+`genoprob_to_snpprob` | `genoprob_to_snpprob(probs, snpinfo)` returns `calc_genoprob` object
+`scan1.R`            | `genoprobs[[chr]][these2keep,-Xcol2drop,,drop=FALSE]`
+`scan1.R` | `vapply(genoprobs, function(a) dim(a)[3], 1)`
+`scan1.R` | `lapply(genoprobs, function(a) dimnames(a)[[3]])`
+`scan1_pg.R`  | `vapply(genoprobs, function(a) dim(a)[3], 1)`
+`scan1_pg.R`  | `lapply(genoprobs, function(a) dimnames(a)[[3]])`
