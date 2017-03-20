@@ -19,7 +19,7 @@ Task: refactor this Rmd to use DOex and run some examples.
 library(dplyr)
 library(qtl2geno)
 library(qtl2scan)
-library(feather)
+library(qtl2feather)
 ```
 
 ```{r}
@@ -120,9 +120,6 @@ This way extracts all markers on `X`, creates the array, then subsets on selecte
 markers <- dimnames(fapr$X)[[3]][1:10]
 dim(fapr$X[,,markers])
 ```
-
-
-Start of work on `cbind.feather_genoprob`. Major step is to create new feather when combining objects from different feathers. But don't want to propagate, and want to think about where to put the feather file, say in same directory as first object. But then need to work out naming conventions.
 
 ```{r}
 knitr::knit_exit()
