@@ -1,0 +1,140 @@
+---
+title: "Feather scan1"
+author: "Brian S. Yandell"
+date: "3/17/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The goal is to use `feather_genoprob` object with `scan1` and other tools in `R/qtl2`.
+
+```{r}
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(qtl2geno)
+  library(qtl2scan)
+  library(qtl2feather)
+  library(qtl2ggplot)
+  library(qtl2pattern)
+})
+```
+
+```{r}
+dirpath <- "~/Documents/Research/rqtl/data/"
+if(!file.exists(file <- file.path(dirpath, "DOex.zip"))) {
+  dirpath <- paste0("https://raw.githubusercontent.com/rqtl/",
+                    "qtl2data/master/DOex")
+  file <- file.path(dirpath, "DOex.zip")
+}
+DOex <- read_cross2(file)
+```
+
+Calculate genotype probabilities and convert to allele probabilities
+
+```{r}
+dirpath <- "~/Documents/Research/rqtl/data/"
+if(!file.exists(file <- file.path(dirpath, "DOex_pr.rds"))) {
+  pr <- calc_genoprob(DOex, error_prob=0.002)
+  saveRDS(pr, file)
+} else {
+  pr <- readRDS(file)
+}
+apr <- genoprob_to_alleleprob(pr)
+```
+
+Write feather database of pr.
+
+```{r}
+fpr <- feather_genoprob(pr, "pr", "feather")
+fapr <- feather_genoprob(apr, "apr", "feather")
+```
+
+## Genome scan
+
+```{r}
+scan_apr <- scan1(fapr, DOex$pheno)
+```
+
+```{r}
+summary(scan_apr, DOex$pmap)
+```
+
+```{r}
+plot(scan_apr, DOex$pmap)
+```
+
+```{r}
+coefs <- scan1coef(apr, DOex$pheno)
+```
+
+```{r}
+summary(coefs, scan_apr, DOex$pmap)
+```
+
+```{r}
+plot(coefs, DOex$pmap)
+```
+
+Plot allele effects over LOD scan.
+
+```{r}
+plot(coefs, DOex$pmap, scan1_output = scan_apr)
+```
+
+## SNP probabilities
+
+```{r}
+if(!file.exists(file <- file.path(dirpath, "c2_snpinfo.rds"))) {
+  dirpath <- paste0("https://raw.githubusercontent.com/rqtl/",
+                    "qtl2data/master/DOex")
+  file <- file.path(dirpath, "c2_snpinfo.rds")
+  tmpfile <- tempfile()
+  download.file(file, tmpfile, quiet=TRUE)
+  snpinfo <- readRDS(tmpfile)
+  unlink(tmpfile)
+} else {
+  snpinfo <- readRDS(file)
+}
+```
+
+Calculate strain distribution patterns
+
+```{r}
+snpinfo$sdp <- calc_sdp(snpinfo[,-(1:4)])
+```
+
+Create index to non-equivalent set of SNPs.
+
+```{r}
+snpinfo <- index_snps(DOex$pmap, snpinfo)
+```
+
+Convert to snp probabilities using feather database. Seems to work.
+
+```{r}
+snpinfo <- index_snps(DOex$pmap, snpinfo)
+snppr <- genoprob_to_snpprob(fapr, snpinfo)
+```
+
+```{r}
+object.size(snppr)
+```
+
+## Kinship calculation
+
+```{r}
+kinship <- calc_kinship(apr, "loco")
+```
+
+
+```{r}
+fkinship <- calc_kinship(fapr, "loco")
+```
+
+```{r}
+summary(c(kinship[[1]] - fkinship[[1]]))
+```
+
