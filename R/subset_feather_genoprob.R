@@ -89,6 +89,7 @@ get_dimension <- function(ind, indID, type = "individual") {
 
   ind
 }
+#' @importFrom feather read_feather
 #' @export
 `[.feather_genoprob` <-
     function(x, ind=NULL, chr=NULL, mar=NULL)

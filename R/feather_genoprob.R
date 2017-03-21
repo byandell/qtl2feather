@@ -26,6 +26,8 @@
 #' as a table of (indivduals*genotypes) x (positions). The first database has all autosome positions,
 #' identified by marker or pseudomarker name. The optional second database is for the X chromosome if present.
 #'
+#' @importFrom feather write_feather
+#' @importFrom dplyr bind_cols
 #' @export
 #' @keywords utilities
 #'

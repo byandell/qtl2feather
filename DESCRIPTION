@@ -8,8 +8,11 @@ Maintainer: Petr Simecek <Petr.Simecek@jax.org>
 Depends:
     R (>= 3.1.0)
 Imports:
+    feather,
+    dplyr
 Suggests:
-    qtl2geno (>= 0.4-5)
+    qtl2geno (>= 0.5-8),
+    qtl2scan (>= 0.5-7)
 License: GPL-3
 URL: http://kbroman.org/qtl2
 LinkingTo: Rcpp
