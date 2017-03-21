@@ -80,14 +80,14 @@ function(genoprob, fbase, fdir = ".")
   if(any(!is_x_chr)) {
     probs <- lapply(subset(genoprob, chr = !is_x_chr), tbl_array)
     probs <- dplyr::bind_cols(probs)
-    warning("writing ", result$feather["A"], "\n")
+    message("writing ", result$feather["A"])
     feather::write_feather(probs,
                            result$feather["A"])
   }
   # X matrix probably different size
   if(any(is_x_chr)) {
     probs <- tbl_array(genoprob[[which(is_x_chr)]])
-    warning("writing ", result$feather["X"], "\n")
+    message("writing ", result$feather["X"])
     feather::write_feather(probs,
                            result$feather["X"])
   }
