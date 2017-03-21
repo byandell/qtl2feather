@@ -10,14 +10,14 @@
 #' values, or character string IDs
 #' @param chr A vector of chromosomes: logical values, or character
 #' string IDs. Numbers are interpreted as character string IDs.
-#' @param mar A vector of marker names as character string IDs. 
+#' @param mar A vector of marker names as character string IDs.
 #' @param ... Ignored.
 #'
 #' @return The input genotype probabilities, with the selected
 #' individuals and/or chromsomes.
 #'
 #' @export
-#' 
+#'
 #' @keywords utilities
 #'
 #' @examples
@@ -35,13 +35,13 @@ subset.feather_genoprob <-
 {
   if(is.null(ind) && is.null(chr) && is.null(mar))
     stop("You must specify either ind or chr or mar.")
-    
+
   attrs <- attributes(x)
   x <- unclass(x)
-    
+
   if(!is.null(chr))
     x$chr <- get_dimension(chr, x$chr, type = "chromosome")
-    
+
   if(!is.null(ind))
     x$ind <- get_dimension(ind, x$ind, type = "individual")
 
@@ -57,9 +57,9 @@ subset.feather_genoprob <-
   ignore <- match(c("names","class"), names(attrs))
   for(a in names(attrs)[-ignore])
     attr(x, a) <- attrs[[a]]
-    
+
   class(x) <- attrs$class
-    
+
   x
 }
 get_dimension <- function(ind, indID, type = "individual") {
@@ -86,7 +86,7 @@ get_dimension <- function(ind, indID, type = "individual") {
   }
   if(length(ind) == 0)
     stop("Must retain at least one ", type, ".")
-  
+
   ind
 }
 #' @export
@@ -99,14 +99,14 @@ element_feather_genoprob <-
   function(x, chr) {
     if(length(chr) != 1)
       stop("need exactly one chr")
-    
+
     is_x_chr <- attr(x, "is_x_chr")
     x <- unclass(x)
-    
+
     # Make sure we have chr ID.
     if(is.numeric(chr))
       chr <- x$chr[chr]
-    
+
     dnames <- x$dimnames[[chr]]
     dims <- x$dim[,chr]
 
@@ -115,14 +115,14 @@ element_feather_genoprob <-
       return(NULL)
     dnames[[3]] <- dnames[[3]][m]
     dims[3] <- length(m)
-    
+
     path <- ifelse(is_x_chr[chr], x$feather["X"], x$feather["A"])
     probs <- feather::read_feather(path, columns = dnames[[3]])
-    
+
     probs <- as.array(as.matrix(probs))
     dim(probs) <- dims
     dimnames(probs) <- dnames
-    
+
     # Subset on individuals and markers.
     probs[x$ind, ,, drop=FALSE]
   }
