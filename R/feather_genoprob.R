@@ -85,7 +85,7 @@ function(genoprob, fbase, fdir = ".")
   # X matrix probably different size
   if(any(is_x_chr)) {
     probs <- tbl_array(genoprob[[which(is_x_chr)]])
-    warning("writing ", result$feather["A"], "\n")
+    warning("writing ", result$feather["X"], "\n")
     feather::write_feather(probs,
                            result$feather["X"])
   }
