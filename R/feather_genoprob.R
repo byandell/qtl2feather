@@ -78,14 +78,14 @@ function(genoprob, fbase, fdir = ".")
   if(any(!is_x_chr)) {
     probs <- sapply(subset(genoprob, chr = !is_x_chr), tbl_array)
     probs <- dplyr::bind_cols(probs)
-    warning("writing feather database ", result$feather["A"], "\m")
+    warning("writing ", result$feather["A"], "\n")
     feather::write_feather(probs, 
                            result$feather["A"])
   }
   # X matrix probably different size
   if(any(is_x_chr)) {
     probs <- tbl_array(genoprob[[which(is_x_chr)]])
-    warning("writing feather database ", result$feather["A"], "\m")
+    warning("writing ", result$feather["A"], "\n")
     feather::write_feather(probs,
                            result$feather["X"])
   }
@@ -105,3 +105,33 @@ names.feather_genoprob <- function(x)
 #' @export
 length.feather_genoprob <- function(x)
   length(unclass(x)$chr)
+#' @export
+dim.feather_genoprob <- function(x) {
+  x <- unclass(x)
+  out <- x$dim[, x$chr, drop = FALSE]
+  rownames(out) <- c("ind","gen","mar")
+  out[1,] <- length(x$ind)
+  out[2,] <- sapply(index_chr(x$dimnames[x$chr], 2),
+                    length)
+  out[3,] <- sapply(index_chr(x$dimnames[x$chr], 3, x$mar),
+                    length)
+  out
+}
+#' @export
+dimnames.feather_genoprob <- function(x) {
+  x <- unclass(x)
+  dnames <- x$dimnames
+  out <- list(ind = x$ind,
+              gen = index_chr(dnames[x$chr], 2),
+              mar = index_chr(dnames[x$chr], 3, x$mar))
+  out
+}
+index_chr <- function(dnames, index, index_sub=NULL) {
+  lapply(dnames, function(x, index, index_sub) {
+      xnames <- x[[index]]
+      if(!is.null(index_sub))
+        xnames <- xnames[xnames %in% index_sub]
+      xnames
+    }, 
+    index, index_sub)
+}

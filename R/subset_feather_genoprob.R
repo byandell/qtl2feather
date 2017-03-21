@@ -45,8 +45,13 @@ subset.feather_genoprob <-
   if(!is.null(ind))
     x$ind <- get_dimension(ind, x$ind, type = "individual")
 
-  if(!is.null(mar))
+  if(!is.null(mar)) {
     x$mar <- get_dimension(mar, x$mar, type = "marker")
+    # Now adjust x$chr if needed
+    mar_dim <- sapply(index_chr(x$dimnames[x$chr], 3, x$mar),
+                      length)
+    x$chr <- x$chr[mar_dim > 0]
+  }
 
   # Set up attributes.
   ignore <- match(c("names","class"), names(attrs))

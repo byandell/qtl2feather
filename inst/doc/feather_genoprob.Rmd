@@ -48,6 +48,28 @@ fpr <- feather_genoprob(pr, "pr", "feather")
 fapr <- feather_genoprob(apr, "apr", "feather")
 ```
 
+Methods `names()` and `length()` both work properly.
+
+```{r}
+names(fpr)
+```
+
+```{r}
+length(fpr)
+```
+
+Methods `dim()` and `dimnames()` give dimensions across the chromosomes.
+Notice that `fpr` has different genotypes for the `X` chromosome.
+
+```{r}
+dim(fpr)
+```
+
+```{r}
+str(dimnames(fpr))
+```
+
+
 ### Selecting one chromosome
 
 Selecting a chromosome causes reading from feather database and creation of an array.
@@ -62,44 +84,16 @@ Alternate form.
 dim(fapr$X)
 ```
 
-Functions `names()` and `length()` both work properly.
-
-```{r}
-names(fapr)
-```
-```{r}
-length(fapr)
-```
-
-Here are the names of elements in a `feather_genoprob` object:
-
-```{r}
-names(unclass(fapr))
-```
-
-But better to use the helper `feather_genoprob_list`:
-
-```{r}
-names(feather_genoprob_list(fapr))
-```
-
-```{r}
-feather_genoprob_list(fapr, "feather")
-```
-
-```{r}
-feather_genoprob_list(fapr, "dim")
-```
-
-```{r}
-sapply(feather_genoprob_list(fapr, "ind","chr","mar"), length)
-```
-
-
 ### Subsetting by ind, chr, mar
 
 Subsetting using `subset(object,ind,chr,mar)` or `[ind,chr,mar]` only adjusts the vector of
 individuals, chromosomes and markers, but does not alter the feather database.
+
+```{r}
+dim(subset(fapr, ind=1:20, chr=c("2","3")))
+```
+
+You can also use `[]` to subset.
 
 ```{r}
 dim(fapr[1:20, c("2","3")][["3"]])
@@ -109,6 +103,16 @@ dim(fapr[1:20, c("2","3")][["3"]])
 f2 <- fapr[,"2"]
 f23 <- fapr[,c("2","3")]
 fx <- fapr[,"X"]
+```
+
+There is a third dimension for markers. However, be careful that if you select a subset of markers that excludes one or more chromosomes, those will be dropped.
+
+```{r}
+dim(subset(fapr, mar=1:30))
+```
+
+```{r}
+dim(fapr[ , , dimnames(fapr)$mar$X[1:20]])
 ```
 
 ### Binding by columns or rows.
@@ -139,6 +143,43 @@ This way extracts all markers on `X`, creates the array, then subsets on selecte
 ```{r}
 markers <- dimnames(fapr$X)[[3]][1:10]
 dim(fapr$X[,,markers])
+```
+
+### Looking under the hood at `feather_genoprob` object
+
+Here are the names of elements in a `feather_genoprob` object:
+
+```{r}
+names(unclass(fapr))
+```
+
+But better to use the helper `feather_genoprob_list`:
+
+```{r}
+names(feather_genoprob_list(fapr))
+```
+
+```{r}
+feather_genoprob_list(fapr, "feather")
+```
+
+```{r}
+feather_genoprob_list(fapr, "dim")
+```
+
+```{r}
+sapply(feather_genoprob_list(fapr, "ind","chr","mar"), length)
+```
+
+A `feather_genoprob` object has all the original information. Thus, it is possible to restore the original object from a `subset` (but not necessarily from a `cbind` or `rbind`). Here is an example.
+
+```{r}
+fapr23 <- subset(fapr, chr=c("2","3"))
+dim(fapr23)
+```
+
+```{r}
+dim(feather_genoprob_restore(fapr23))
 ```
 
 ## Time trial simulation
