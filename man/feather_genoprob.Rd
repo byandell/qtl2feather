@@ -16,7 +16,7 @@ and \code{\link[qtl2geno]{calc_genoprob}}.}
 \item{fdir}{Directory for feather database.}
 }
 \value{
-A list containing the attributes of \code{genoprob} 
+A list containing the attributes of \code{genoprob}
 and the address for the created feather database. Access components with \code{\link{feather_genoprob_list}}.
 Components are:
 \itemize{
@@ -33,7 +33,7 @@ Uses package feather to convert R object created in R/qtl2geno for fast access.
 }
 \details{
 The genotype probabilities are stored in 1-2 databases
-as a table of (indivduals*genotypes) x (positions). The first database has all autosome positions, 
+as a table of (indivduals*genotypes) x (positions). The first database has all autosome positions,
 identified by marker or pseudomarker name. The optional second database is for the X chromosome if present.
 }
 \examples{
