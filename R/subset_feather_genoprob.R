@@ -39,8 +39,10 @@ subset.feather_genoprob <-
   attrs <- attributes(x)
   x <- unclass(x)
 
-  if(!is.null(chr))
+  if(!is.null(chr)) {
     x$chr <- get_dimension(chr, x$chr, type = "chromosome")
+    attrs[["is_x_chr"]] <- attrs[["is_x_chr"]][chr]
+  }
 
   if(!is.null(ind))
     x$ind <- get_dimension(ind, x$ind, type = "individual")
