@@ -9,7 +9,7 @@
 #'
 #' @details
 #' The genotype probabilities are extracted from 1-2 feather databases. Each chromosome is extracted in turn.
-#' 
+#'
 #' @export
 #' @keywords utilities
 #'
@@ -20,11 +20,11 @@
 #' probs <- calc_genoprob(grav2, map, error_prob=0.002)
 #' fprobs <- feather_genoprob(probs, "my.feather")
 #' nprobs <- feather2calc_genoprob(fprobs)
-#' 
+#'
 feather2calc_genoprob <- function(object) {
   if(!inherits(object, "feather_genoprob"))
     stop("object must inherit class feather_genoprob")
-  
+
   attrs <- attributes(object)
 
   chr <- unclass(object)$chr
@@ -32,13 +32,13 @@ feather2calc_genoprob <- function(object) {
   names(result) <- chr
   for(chri in chr)
     result[[chri]] <- object[[chri]]
-  
+
   # Set up attributes.
   ignore <- match(c("names","class"), names(attrs))
   for(a in names(attrs)[-ignore])
     attr(result, a) <- attrs[[a]]
-  
+
   class(result) <- attrs$class[-1]
-  
+
   result
 }
