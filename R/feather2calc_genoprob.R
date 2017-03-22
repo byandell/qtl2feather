@@ -5,7 +5,7 @@
 #'
 #' @param object Object of class \code{\link{feather_genoprob}}.
 #'
-#' @return An object of class \code{\link[qtlgeno]{calc_genoprob}}.
+#' @return An object of class \code{\link[qtl2geno]{calc_genoprob}}.
 #'
 #' @details
 #' The genotype probabilities are extracted from 1-2 feather databases. Each chromosome is extracted in turn.

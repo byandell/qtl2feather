@@ -10,7 +10,7 @@ feather2calc_genoprob(object)
 \item{object}{Object of class \code{\link{feather_genoprob}}.}
 }
 \value{
-An object of class \code{\link[qtlgeno]{calc_genoprob}}.
+An object of class \code{\link[qtl2geno]{calc_genoprob}}.
 }
 \description{
 Uses package feather to convert R object created in R/qtl2geno for fast access.
