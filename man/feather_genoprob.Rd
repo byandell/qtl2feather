@@ -20,7 +20,6 @@ and \code{\link[qtl2geno]{calc_genoprob}}.}
 \value{
 A list containing the attributes of \code{genoprob}
 and the address for the created feather database.
-
 Components are:
 \itemize{
 \item \code{dim} - List of all dimensions of 3-D arrays.
