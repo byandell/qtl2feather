@@ -77,19 +77,32 @@ test_that("feather_genoprob works with qtl2geno/qtl2scan functions", {
                  scan1coef(subset(fprobs, chr="X"), phe, fk[["X"]], addcovar=Xcovar))
 
     # scan1blup
-    phe <- iron$pheno[,1,drop=FALSE]
     expect_equal(scan1blup(subset(probs, chr="18"), phe, addcovar=sex),
                  scan1blup(subset(fprobs, chr="18"), phe, addcovar=sex))
     expect_equal(scan1blup(subset(probs, chr="X"), phe, addcovar=Xcovar),
                  scan1blup(subset(fprobs, chr="X"), phe, addcovar=Xcovar))
 
     # scan1blup with kinship
-    phe <- iron$pheno[,1,drop=FALSE]
     expect_equal(scan1blup(subset(probs, chr="18"), phe, k[["18"]], addcovar=sex),
                  scan1blup(subset(fprobs, chr="18"), phe, fk[["18"]], addcovar=sex))
     expect_equal(scan1blup(subset(probs, chr="X"), phe, k[["X"]], addcovar=Xcovar),
                  scan1blup(subset(fprobs, chr="X"), phe, fk[["X"]], addcovar=Xcovar))
 
+    # scan1perm
+    n_perm <- 3
+    seed <- 65418959
+    set.seed(seed)
+    operm <- scan1perm(probs, phe, n_perm=n_perm)
+    set.seed(seed)
+    foperm <- scan1perm(fprobs, phe, n_perm=n_perm)
+    expect_equal(operm, foperm)
+
+    # scan1perm, 2 phenotypes, additive covariate
+    set.seed(seed)
+    operm <- scan1perm(probs, iron$pheno, n_perm=n_perm, addcovar=sex)
+    set.seed(seed)
+    foperm <- scan1perm(fprobs, iron$pheno, n_perm=n_perm, addcovar=sex)
+    expect_equal(operm, foperm)
 
 
     # clean up
