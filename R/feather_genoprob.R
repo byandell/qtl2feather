@@ -11,7 +11,7 @@
 #' @param verbose Show warning of feather creation if \code{TRUE} (default).
 #'
 #' @return A list containing the attributes of \code{genoprob}
-#' and the address for the created feather database. Access components with \code{\link{feather_genoprob_list}}.
+#' and the address for the created feather database. 
 #' Components are:
 #' \itemize{
 #' \item \code{dim} - List of all dimensions of 3-D arrays.
