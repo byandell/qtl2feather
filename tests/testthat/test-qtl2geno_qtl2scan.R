@@ -104,6 +104,14 @@ test_that("feather_genoprob works with qtl2geno/qtl2scan functions", {
     foperm <- scan1perm(fprobs, iron$pheno, n_perm=n_perm, addcovar=sex)
     expect_equal(operm, foperm)
 
+    # scan1perm, X-chr-specific
+    set.seed(seed)
+    operm <- scan1perm(probs, iron$pheno, n_perm=n_perm, addcovar=sex, Xcovar=Xcovar,
+                       perm_Xsp=TRUE, chr_lengths=chr_lengths(map))
+    set.seed(seed)
+    foperm <- scan1perm(fprobs, iron$pheno, n_perm=n_perm, addcovar=sex, Xcovar=Xcovar,
+                       perm_Xsp=TRUE, chr_lengths=chr_lengths(map))
+    expect_equal(operm, foperm)
 
     # clean up
     lf <- list.files(dir, pattern=".feather")
