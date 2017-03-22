@@ -8,6 +8,7 @@
 #' and \code{\link[qtl2geno]{calc_genoprob}}.
 #' @param fbase Base of fileame for feather database.
 #' @param fdir Directory for feather database.
+#' @param verbose Show warning of feather creation if \code{TRUE} (default).
 #'
 #' @return A list containing the attributes of \code{genoprob}
 #' and the address for the created feather database. Access components with \code{\link{feather_genoprob_list}}.
@@ -39,7 +40,7 @@
 #' fprobs <- feather_genoprob(probs, "my.feather")
 
 feather_genoprob <-
-function(genoprob, fbase, fdir = ".")
+function(genoprob, fbase, fdir = ".", verbose = TRUE)
 {
   # Set up directory for feather objects.
   if(!dir.exists(fdir))
@@ -80,14 +81,14 @@ function(genoprob, fbase, fdir = ".")
   if(any(!is_x_chr)) {
     probs <- lapply(subset(genoprob, chr = !is_x_chr), tbl_array)
     probs <- dplyr::bind_cols(probs)
-    message("writing ", result$feather["A"])
+    if(verbose) message("writing ", result$feather["A"])
     feather::write_feather(probs,
                            result$feather["A"])
   }
   # X matrix probably different size
   if(any(is_x_chr)) {
     probs <- tbl_array(genoprob[[which(is_x_chr)]])
-    message("writing ", result$feather["X"])
+    if(verbose) message("writing ", result$feather["X"])
     feather::write_feather(probs,
                            result$feather["X"])
   }

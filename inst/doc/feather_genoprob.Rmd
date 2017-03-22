@@ -1,5 +1,5 @@
 ---
-title: "Petr Mockup"
+title: "Feather Genoprob Features"
 author: "Brian S. Yandell"
 date: "3/17/2017"
 output: pdf_document
@@ -153,22 +153,12 @@ Here are the names of elements in a `feather_genoprob` object:
 names(unclass(fapr))
 ```
 
-But better to use the helper `feather_genoprob_list`:
-
 ```{r}
-names(feather_genoprob_list(fapr))
+unclass(fapr)$feather
 ```
 
 ```{r}
-feather_genoprob_list(fapr, "feather")
-```
-
-```{r}
-feather_genoprob_list(fapr, "dim")
-```
-
-```{r}
-sapply(feather_genoprob_list(fapr, "ind","chr","mar"), length)
+sapply(unclass(fapr)[c("ind","chr","mar")], length)
 ```
 
 A `feather_genoprob` object has all the original information. Thus, it is possible to restore the original object from a `subset` (but not necessarily from a `cbind` or `rbind`). Here is an example.
@@ -193,7 +183,7 @@ system.time(pr <- calc_genoprob(DOex, error_prob=0.002))
 ```{r}
 system.time({
   for(i in seq(100))
-    fpr <- feather_genoprob(pr, "pr", "feather")
+    fpr <- feather_genoprob(pr, "pr", "feather", verbose = FALSE)
 })
 ```
 
@@ -205,7 +195,7 @@ unlink(tmpfile)
 ```
 
 The `pr` object is `r format(object.size(pr), units = "MB")` in `R` or `r size_pr` Mb if saved as RDS file, while the `fpr` object is `r format(object.size(fpr), units = "MB")` in R with additional
-`r sum(file.size(feather_genoprob_list(fpr, "feather"))) * 1e-6` Mb for saved feather databases.
+`r sum(file.size(unclass(fpr)$feather)) * 1e-6` Mb for saved feather databases.
 
 #### Time to extract chromosome information.
 
@@ -220,7 +210,7 @@ system.time({
 
 Extract first 50 markers from chromosome `"2"` 100 times.
 ```{r}
-markers <- feather_genoprob_list(fpr, "dimnames")[["2"]][[3]][1:50]
+markers <- dimnames(fpr)$mar[["2"]][1:50]
 system.time({
   for(i in seq(100))
     tmp <- fpr[["2"]]

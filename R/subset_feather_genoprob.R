@@ -33,6 +33,9 @@
 subset.feather_genoprob <-
     function(x, ind=NULL, chr=NULL, mar=NULL, ...)
 {
+  if(!inherits(x, "feather_genoprob"))
+    stop("argument ", 1, "is not of class feather_genoprob")
+      
   if(is.null(ind) && is.null(chr) && is.null(mar))
     stop("You must specify either ind or chr or mar.")
 
@@ -100,6 +103,11 @@ get_dimension <- function(ind, indID, type = "individual") {
 # Return an array for chromosome, subset by individuals and markers.
 element_feather_genoprob <-
   function(x, chr) {
+    if(!inherits(x, "feather_genoprob"))
+      stop("argument ", 1, "is not of class feather_genoprob")
+    
+    chr <- get_dimension(chr, names(x), type = "marker")
+    
     if(length(chr) != 1)
       stop("need exactly one chr")
 

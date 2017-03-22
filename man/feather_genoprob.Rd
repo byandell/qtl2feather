@@ -4,7 +4,7 @@
 \alias{feather_genoprob}
 \title{Store genotype probabilities in feather database}
 \usage{
-feather_genoprob(genoprob, fbase, fdir = ".")
+feather_genoprob(genoprob, fbase, fdir = ".", verbose = TRUE)
 }
 \arguments{
 \item{genoprob}{Object of class \code{"calc_genoprob"}. For details, see the
@@ -14,6 +14,8 @@ and \code{\link[qtl2geno]{calc_genoprob}}.}
 \item{fbase}{Base of fileame for feather database.}
 
 \item{fdir}{Directory for feather database.}
+
+\item{verbose}{Show warning of feather creation if \code{TRUE} (default).}
 }
 \value{
 A list containing the attributes of \code{genoprob}
