@@ -37,7 +37,9 @@ feather_genoprob_restore <- function(object) {
   
   result$chr <- names(result$dimnames)
   result$ind <- result$dimnames[[1]][[1]]
-  result$mar <- as.vector(unlist(lapply(result$dimnames, function(x) x[[3]])))
+  tmp <- unlist(lapply(result$dimnames, function(x) x[[3]]))
+  names(tmp) <- NULL
+  result$mar <- tmp
   
   # Set up attributes.
   ignore <- match(c("names","class"), names(attrs))

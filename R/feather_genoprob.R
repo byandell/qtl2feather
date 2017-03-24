@@ -57,7 +57,9 @@ function(genoprob, fbase, fdir = ".", verbose = TRUE)
   # Identify chromosome, individuals, markers (for later subset use).
   result$chr <- names(genoprob)
   result$ind <- result$dimnames[[1]][[1]]
-  result$mar <- as.vector(unlist(lapply(result$dimnames, function(x) x[[3]])))
+  tmp <- unlist(lapply(result$dimnames, function(x) x[[3]]))
+  names(tmp) <- NULL
+  result$mar <- tmp
 
   is_x_chr <- attr(genoprob, "is_x_chr")
 
