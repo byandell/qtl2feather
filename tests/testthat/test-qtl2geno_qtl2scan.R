@@ -30,6 +30,56 @@ test_that("feather_genoprob works with qtl2geno/qtl2scan functions", {
     grid <- calc_grid(iron$gmap, step=1)
     expect_equal(probs_to_grid(probs, grid), probs_to_grid(fprobs, grid))
 
+    # maxmarg (impute genotypes giving marginal probabilities)
+    seed <- 47220527
+    ### whole genome
+    set.seed(seed)
+    imp <- maxmarg(probs)
+    set.seed(seed)
+    fimp <- maxmarg(fprobs)
+    expect_equal(imp, fimp)
+
+    ### single autosomal position
+    set.seed(seed)
+    imp <- maxmarg(probs, map, chr="19", pos=10.3)
+    set.seed(seed)
+    fimp <- maxmarg(fprobs, map, chr="19", pos=10.3)
+    expect_equal(imp, fimp)
+    ### return character strings
+    set.seed(seed)
+    imp <- maxmarg(probs, map, chr="19", pos=10.3, return_char=TRUE)
+    set.seed(seed)
+    fimp <- maxmarg(fprobs, map, chr="19", pos=10.3, return_char=TRUE)
+    expect_equal(imp, fimp)
+
+    ### single X chr position
+    set.seed(seed)
+    imp <- maxmarg(probs, map, chr="X", pos=57.9)
+    set.seed(seed)
+    fimp <- maxmarg(fprobs, map, chr="X", pos=57.9)
+    expect_equal(imp, fimp)
+    ### return character strings
+    set.seed(seed)
+    imp <- maxmarg(probs, map, chr="X", pos=57.9, return_char=TRUE)
+    set.seed(seed)
+    fimp <- maxmarg(fprobs, map, chr="X", pos=57.9, return_char=TRUE)
+    expect_equal(imp, fimp)
+
+    ### single chromosome
+    set.seed(seed)
+    imp <- maxmarg(probs[19])
+    set.seed(seed)
+    fimp <- maxmarg(fprobs[19])
+    expect_equal(imp, fimp)
+
+    ### single X chr position
+    set.seed(seed)
+    imp <- maxmarg(probs[,"X"])
+    set.seed(seed)
+    fimp <- maxmarg(fprobs[,"X"])
+    expect_equal(imp, fimp)
+
+
     # scan1
     Xcovar <- get_x_covar(iron)
     sex <- Xcovar[,"sex",drop=FALSE]
