@@ -47,7 +47,7 @@ bind_feather <- function(args, check_fn, append_fn, bind_fn,
     attrs <- attributes(result)
     result <- unclass(result)
     if(is.null(fdir))
-      fdir <- dirname(result$feather["A"])
+      fdir <- dirname(result$feather)
     if(!dir.exists(fdir))
       stop("directory", fdir, "does not exist")
     
@@ -57,7 +57,7 @@ bind_feather <- function(args, check_fn, append_fn, bind_fn,
     diff_feather <- 0
     for(i in 2:length(args)) {
       # This requires some care, as need to combine feathers
-      diff_feather <- (result$feather["A"] != unclass(args[[i]])$feather["A"])
+      diff_feather <- (result$feather != unclass(args[[i]])$feather)
       if(diff_feather) {
         diff_feather <- i
         break
@@ -114,9 +114,10 @@ check_cbind <- function(args) {
 }
 
 append_chr <- function(result, i, argsi, attrs) {
-  is_x_chr_i <- attr(argsi, "is_x_chr")
+  is_x_chr <- attr(args, "is_x_chr")
   argsi <- unclass(argsi)
-  
+
+  # Identify what chromosomes are new (if any).  
   new_chr <- is.na(match(argsi$chr, result$chr))
   if(!any(new_chr))
     stop("Input object ", i, "has no new chromosomes")
@@ -124,13 +125,18 @@ append_chr <- function(result, i, argsi, attrs) {
     warning("duplicate chr ", 
             paste(argsi$chr[!new_chr], collapse = ","),
             " in input object ", i, " ignored")
-  
-  # Append new chromosomes.
   new_chr <- argsi$chr[new_chr]
+  
+  # Identify new markers.
+  marnamesi <- unlist(lapply(argsi$dimnames[new_chr], function(x) x[[3]]))
+  new_mar <- argsi$mar[argsi$mar %in% marnamesi]
+
+  # Append new components.
   result$chr <- c(result$chr, new_chr)
+  result$mar <- c(result$mar, new_mar)
   result$dim <- cbind(result$dim, argsi$dim[, new_chr, drop = FALSE])
-  result$dim <- c(result$dimnames, argsi$dimnames[new_chr])
-  attrs$is_x_chr <- c(attrs$is_x_chr, is_x_chr_i[new_chr])
+  result$dimnames <- c(result$dimnames, argsi$dimnames[new_chr])
+  attrs$is_x_chr <- c(attrs$is_x_chr, is_x_chr[new_chr])
   
   list(result = result, attrs = attrs)
 }

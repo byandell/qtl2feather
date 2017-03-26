@@ -61,15 +61,10 @@ function(genoprob, fbase, fdir = ".", verbose = TRUE)
   names(tmp) <- NULL
   result$mar <- tmp
 
-  is_x_chr <- attr(genoprob, "is_x_chr")
-
   # Add feather addresses
   if(missing(fbase))
     stop("need to supply fbase")
-  result$feather <- c(A = file.path(fdir,
-                                 paste(fbase, "feather", sep = ".")))
-  if(any(is_x_chr))
-    result$feather["X"] <- file.path(fdir, paste(fbase, "feather", sep = "_X."))
+  result$feather <- file.path(fdir, fbase)
 
   # Turn list of 3D arrays into table
   # Need to handle X chr separately!
@@ -80,19 +75,13 @@ function(genoprob, fbase, fdir = ".", verbose = TRUE)
     dimnames(x) <- list(NULL, dnames[[3]])
     as.data.frame(x)
   }
-  if(any(!is_x_chr)) {
-    probs <- lapply(subset(genoprob, chr = !is_x_chr), tbl_array)
-    probs <- dplyr::bind_cols(probs)
-    if(verbose) message("writing ", result$feather["A"])
-    feather::write_feather(probs,
-                           result$feather["A"])
-  }
-  # X matrix probably different size
-  if(any(is_x_chr)) {
-    probs <- tbl_array(genoprob[[which(is_x_chr)]])
-    if(verbose) message("writing ", result$feather["X"])
-    feather::write_feather(probs,
-                           result$feather["X"])
+  for(chr in result$chr) {
+    probs <- tbl_array(genoprob[[chr]])
+    fname <- paste0(result$feather, "_", chr, ".feather")
+    if(file.exists(fname))
+      warning("writing over existing ", fname)
+    if(verbose) message("writing ", fname)
+    feather::write_feather(probs, fname)
   }
 
   # Set up attributes.

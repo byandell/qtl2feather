@@ -127,7 +127,7 @@ element_feather_genoprob <-
     dnames[[3]] <- dnames[[3]][m]
     dims[3] <- length(m)
 
-    path <- ifelse(is_x_chr[chr], x$feather["X"], x$feather["A"])
+    path <- paste0(x$feather, "_", chr, ".feather")
     probs <- feather::read_feather(path, columns = dnames[[3]])
 
     probs <- as.array(as.matrix(probs))

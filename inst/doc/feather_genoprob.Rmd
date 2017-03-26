@@ -44,8 +44,18 @@ apr <- genoprob_to_alleleprob(pr)
 Write feather database of pr.
 
 ```{r}
-fpr <- feather_genoprob(pr, "pr", "feather")
-fapr <- feather_genoprob(apr, "apr", "feather")
+tmpdir <- tempdir()
+fdir <- file.path(tmpdir, "feather")
+dir.create(fdir)
+```
+
+```{r}
+fpr <- feather_genoprob(pr, "pr", fdir)
+fapr <- feather_genoprob(apr, "apr", fdir)
+```
+
+```{r}
+list.files(fdir)
 ```
 
 Methods `names()` and `length()` both work properly.
@@ -117,7 +127,8 @@ dim(fapr[ , , dimnames(fapr)$mar$X[1:20]])
 
 ### Binding by columns or rows.
 
-Binding by columns or rows will cause creation of a new feather database if input objects arose from different feather databases. However, if they come from the same, then it reuses the one feather database. See `example(cbind.feather_genoprob)` and `example(rbind.feather_genoprob)` with objects having distinct feather databases.
+Binding by columns (chromosomes) or rows (individuals) may cause creation of a new feather database if input objects arose from different feather databases. However, if objects are subsets of the same `feather_genoprob` object, then it reuses the one feather database. Further, if objects have the same directory and file basename for their feather databases, they will be combined without creation of any new feather databases.
+See `example(cbind.feather_genoprob)` and `example(rbind.feather_genoprob)` with objects having distinct feather databases.
 
 ```{r}
 newf23 <- cbind(f2,f23)
@@ -143,6 +154,27 @@ This way extracts all markers on `X`, creates the array, then subsets on selecte
 ```{r}
 markers <- dimnames(fapr$X)[[3]][1:10]
 dim(fapr$X[,,markers])
+```
+
+Two `feather_genoprob` objects using same area. Combine using `cbind`. Notice that the order of chromosomes is reversed by joining `fapr2` to `fapr3`.
+
+```{r}
+fdir2 <- file.path(tmpdir, "feather2")
+dir.create(fdir2)
+fapr2 <- feather_genoprob(subset(apr, chr="2"), "apr", fdir2)
+fapr3 <- feather_genoprob(subset(apr, chr="3"), "apr", fdir2)
+```
+
+```{r}
+fapr32 <- cbind(fapr3,fapr2)
+```
+
+```{r}
+dim(fapr32)
+```
+
+```{r}
+list.files(fdir2)
 ```
 
 ### Looking under the hood at `feather_genoprob` object
@@ -215,5 +247,13 @@ system.time({
   for(i in seq(100))
     tmp <- fpr[["2"]]
 })
+```
+
+### Clean up
+
+Remove temporary directories and files.
+
+```{r}
+unlink(tmpdir, TRUE)
 ```
 
