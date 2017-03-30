@@ -45,6 +45,10 @@ subset.feather_genoprob <-
   if(!is.null(chr)) {
     x$chr <- get_dimension(chr, x$chr, type = "chromosome")
     attrs[["is_x_chr"]] <- attrs[["is_x_chr"]][chr]
+    # Now adjust x$mar if needed
+    tmp <- unlist(index_chr(x$dimnames[x$chr], 3, x$mar))
+    names(tmp) <- NULL
+    x$mar <- tmp
   }
 
   if(!is.null(ind))
