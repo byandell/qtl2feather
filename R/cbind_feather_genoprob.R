@@ -114,7 +114,7 @@ check_cbind <- function(args) {
 }
 
 append_chr <- function(result, i, argsi, attrs) {
-  is_x_chr <- attr(args, "is_x_chr")
+  is_x_chr <- attr(argsi, "is_x_chr")
   argsi <- unclass(argsi)
 
   # Identify what chromosomes are new (if any).  
