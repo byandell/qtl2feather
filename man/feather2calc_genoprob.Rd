@@ -23,7 +23,8 @@ library(qtl2geno)
 grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
 map <- insert_pseudomarkers(grav2$gmap, step=1)
 probs <- calc_genoprob(grav2, map, error_prob=0.002)
-fprobs <- feather_genoprob(probs, "my.feather")
+dir <- tempdir()
+fprobs <- feather_genoprob(probs, "grav2", dir)
 nprobs <- feather2calc_genoprob(fprobs)
 
 }

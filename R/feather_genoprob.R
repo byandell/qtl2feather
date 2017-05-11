@@ -6,7 +6,7 @@
 #' @param genoprob Object of class \code{"calc_genoprob"}. For details, see the
 #' \href{http://kbroman.org/qtl2/assets/vignettes/developer_guide.html}{R/qtl2 developer guide}
 #' and \code{\link[qtl2geno]{calc_genoprob}}.
-#' @param fbase Base of fileame for feather database.
+#' @param fbase Base of filename for feather database.
 #' @param fdir Directory for feather database.
 #' @param verbose Show warning of feather creation if \code{TRUE} (default).
 #'
@@ -16,6 +16,7 @@
 #' \itemize{
 #' \item \code{dim} - List of all dimensions of 3-D arrays.
 #' \item \code{dimnames} - List of all dimension names of 3-D arrays.
+#' \item \code{is_x_chr} - Vector of all is_x_chr attributes.
 #' \item \code{chr} - Vector of (subset of) chromosome names for this object.
 #' \item \code{ind} - Vector of (subset of) individual names for this object.
 #' \item \code{mar} - Vector of (subset of) marker names for this object.
@@ -23,9 +24,16 @@
 #' }
 #'
 #' @details
-#' The genotype probabilities are stored in 1-2 databases
-#' as a table of (indivduals*genotypes) x (positions). The first database has all autosome positions,
-#' identified by marker or pseudomarker name. The optional second database is for the X chromosome if present.
+#' The genotype probabilities are stored in separate databases for each chromosome
+#' as tables of (indivduals*genotypes) x (positions) in directory \code{feather}. 
+#' The \code{dim}, \code{dimnames} and \code{is_x_chr} elements of the object
+#' have information about the entire feather database.
+#' If a \code{feather_genoprob} object is a subset of another such object, 
+#' the \code{chr}, \code{ind}, and \code{mar} contain information about what is in the subset.
+#' However, the \code{feather} databases are not altered in a subset, and can be restored by
+#' \code{\link{feather_genoprob_restore}}. The actual elements of a \code{feather_genoprob}
+#' object are only accessible to the user after a call to \code{\link[base]{unclass}}; instead
+#' the usual access to elements of the object invoke \code{\link{subset.feather_genoprob}}.
 #'
 #' @importFrom feather write_feather
 #' @importFrom dplyr bind_cols
@@ -37,7 +45,8 @@
 #' grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
 #' map <- insert_pseudomarkers(grav2$gmap, step=1)
 #' probs <- calc_genoprob(grav2, map, error_prob=0.002)
-#' fprobs <- feather_genoprob(probs, "my.feather")
+#' dir <- tempdir()
+#' fprobs <- feather_genoprob(probs, "grav2", dir)
 
 feather_genoprob <-
 function(genoprob, fbase, fdir = ".", verbose = TRUE)
@@ -52,7 +61,8 @@ function(genoprob, fbase, fdir = ".", verbose = TRUE)
   # Get dimensions and dimnames for chromosome information
   chr_dim <- lapply(genoprob, function(x) attributes(x))
   result <- list(dim = sapply(chr_dim, function(x) x$dim),
-                 dimnames = lapply(chr_dim, function(x) x$dimnames))
+                 dimnames = lapply(chr_dim, function(x) x$dimnames),
+                 is_x_chr = attr(genoprob, "is_x_chr"))
 
   # Identify chromosome, individuals, markers (for later subset use).
   result$chr <- names(genoprob)

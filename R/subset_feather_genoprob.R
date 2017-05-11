@@ -25,7 +25,8 @@
 #' grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
 #' \dontshow{grav2 <- grav2[1:8,c(1,2)]}
 #' pr <- calc_genoprob(grav2)
-#' fpr <- feather_genoprob(pr, "my.feather")
+#' dir <- tempdir()
+#' fpr <- feather_genoprob(pr, "grav2", dir)
 #' # keep just individuals 1:5, chromosome 2
 #' prsub <- fpr[1:5,2]
 #' # keep just chromosome 2

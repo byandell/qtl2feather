@@ -18,8 +18,9 @@
 #' map <- insert_pseudomarkers(grav2$gmap, step=1)
 #' probsA <- calc_genoprob(grav2[1:5,], map, error_prob=0.002)
 #' probsB <- calc_genoprob(grav2[6:12,], map, error_prob=0.002)
-#' fprobsA <- feather_genoprob(probsA, "exampleAr")
-#' fprobsB <- feather_genoprob(probsB, "exampleBr")
+#' dir <- tempdir()
+#' fprobsA <- feather_genoprob(probsA, "exampleAr", dir)
+#' fprobsB <- feather_genoprob(probsB, "exampleBr", dir)
 #' fprobs <- rbind(fprobsA, fprobsB, fbase = "exampleABr")
 #'
 #' @export
