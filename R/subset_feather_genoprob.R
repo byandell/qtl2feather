@@ -31,7 +31,7 @@
 #' prsub <- fpr[1:5,2]
 #' # keep just chromosome 2
 #' prsub2 <- fpr[,2]
-subset.feather_genoprob <-
+subset_feather_genoprob <-
     function(x, ind=NULL, chr=NULL, mar=NULL, ...)
 {
   if(!inherits(x, "feather_genoprob"))
@@ -99,11 +99,17 @@ get_dimension <- function(ind, indID, type = "individual") {
 
   ind
 }
+#' @export
+#' @export subset.feather_genoprob
+#' @method subset feather_genoprob
+subset.feather_genoprob <-
+  function(x, ind=NULL, chr=NULL, mar=NULL, ...)
+    subset_feather_genoprob(x, ind, chr, mar)
 #' @importFrom feather read_feather
 #' @export
 `[.feather_genoprob` <-
     function(x, ind=NULL, chr=NULL, mar=NULL)
-    subset(x, ind, chr, mar)
+    subset_feather_genoprob(x, ind, chr, mar)
 
 # Return an array for chromosome, subset by individuals and markers.
 element_feather_genoprob <-

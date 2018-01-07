@@ -42,7 +42,9 @@ have information about the entire feather database.
 If a \code{feather_genoprob} object is a subset of another such object, 
 the \code{chr}, \code{ind}, and \code{mar} contain information about what is in the subset.
 However, the \code{feather} databases are not altered in a subset, and can be restored by
-\code{\link{feather_genoprob_restore}}.
+\code{\link{feather_genoprob_restore}}. The actual elements of a \code{feather_genoprob}
+object are only accessible to the user after a call to \code{\link[base]{unclass}}; instead
+the usual access to elements of the object invoke \code{\link{subset.feather_genoprob}}.
 }
 \examples{
 library(qtl2geno)
