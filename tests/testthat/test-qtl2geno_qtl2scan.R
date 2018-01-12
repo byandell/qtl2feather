@@ -1,9 +1,9 @@
-context("qtl2geno/qtl2scan")
+context("qtl2")
 
-test_that("feather_genoprob works with qtl2geno/qtl2scan functions", {
+test_that("feather_genoprob works with qtl2 functions", {
 
-    library(qtl2geno)
-    iron <- read_cross2(system.file("extdata", "iron.zip", package="qtl2geno"))
+    library(qtl2)
+    iron <- read_cross2(system.file("extdata", "iron.zip", package="qtl2"))
     iron <- iron[,c(18,19,"X")]
 
     map <- insert_pseudomarkers(iron$gmap, step=1)
@@ -83,7 +83,6 @@ test_that("feather_genoprob works with qtl2geno/qtl2scan functions", {
     # scan1
     Xcovar <- get_x_covar(iron)
     sex <- Xcovar[,"sex",drop=FALSE]
-    library(qtl2scan)
     expect_equal(scan1(probs, iron$pheno, Xcovar=Xcovar),
                  scan1(fprobs, iron$pheno, Xcovar=Xcovar))
     expect_equal(scan1(probs, iron$pheno, Xcovar=Xcovar, addcovar=sex),

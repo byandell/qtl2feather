@@ -21,8 +21,8 @@
 #' @keywords utilities
 #'
 #' @examples
-#' library(qtl2geno)
-#' grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
+#' library(qtl2)
+#' grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2"))
 #' \dontshow{grav2 <- grav2[1:8,c(1,2)]}
 #' pr <- calc_genoprob(grav2)
 #' dir <- tempdir()

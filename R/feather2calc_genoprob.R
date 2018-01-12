@@ -1,11 +1,11 @@
 # feather_genoprob
 #' Store genotype probabilities in feather database
 #'
-#' Uses package feather to convert R object created in R/qtl2geno for fast access.
+#' Uses package feather to convert R object created in R/qtl2 for fast access.
 #'
 #' @param object Object of class \code{\link{feather_genoprob}}.
 #'
-#' @return An object of class \code{\link[qtl2geno]{calc_genoprob}}.
+#' @return An object of class \code{\link[qtl2]{calc_genoprob}}.
 #'
 #' @details
 #' The genotype probabilities are extracted from 1-2 feather databases. Each chromosome is extracted in turn.
@@ -14,8 +14,8 @@
 #' @keywords utilities
 #'
 #' @examples
-#' library(qtl2geno)
-#' grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2geno"))
+#' library(qtl2)
+#' grav2 <- read_cross2(system.file("extdata", "grav2.zip", package="qtl2"))
 #' map <- insert_pseudomarkers(grav2$gmap, step=1)
 #' probs <- calc_genoprob(grav2, map, error_prob=0.002)
 #' dir <- tempdir()
