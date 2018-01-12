@@ -6,7 +6,7 @@
 
 [Karl Broman](http://kbroman.org) & [Brian Yandell](http://www.stat.wisc.edu/~yandell)
 
-R/qtl2feather is a new package that uses [feather](https://github.com/wesm/feather) to store a genotype probabilitis in a feather database for rapid access. It is fully integrated with 
+R/qtl2feather is a new package that uses [feather](https://github.com/wesm/feather) to store a genotype probabilitis in a feather database for rapid access. It is fully integrated with
 [R/qtl2](http://kbroman.org/qtl2) (aka qtl2). See that package for the bigger story of the qtl2 suite of routines.
 
 ---
@@ -14,12 +14,12 @@ R/qtl2feather is a new package that uses [feather](https://github.com/wesm/feath
 ### Installation
 
 R/qtl2 is early in development and so is not yet available on
-[CRAN](http://cran.r-project.org).
+[CRAN](https://cran.r-project.org).
 
 You can install R/qtl2 from [GitHub](https://github.com/rqtl).
 
 You first need to install the
-[feather](https://github.com/wesm/feather) package and the 
+[feather](https://github.com/wesm/feather) package and the
 [dplyr](http://dplyr.tidyverse.org/)
 
     install.packages(c("feather", "dplyr"))
@@ -39,4 +39,4 @@ Once you have installed these, install qtl2feather as
 
 #### License
 
-[Licensed](License.md) under [GPL-3](http://www.r-project.org/Licenses/GPL-3).
+[Licensed](License.md) under [GPL-3](https://www.r-project.org/Licenses/GPL-3).
