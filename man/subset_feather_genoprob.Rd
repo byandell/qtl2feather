@@ -2,9 +2,13 @@
 % Please edit documentation in R/subset_feather_genoprob.R
 \name{subset_feather_genoprob}
 \alias{subset_feather_genoprob}
+\alias{subset.feather_genoprob}
 \title{Subsetting genotype probabilities}
 \usage{
 subset_feather_genoprob(x, ind = NULL, chr = NULL, mar = NULL, ...)
+
+\method{subset}{feather_genoprob}(x, ind = NULL, chr = NULL, mar = NULL,
+  ...)
 }
 \arguments{
 \item{x}{Genotype probabilities as output from \code{\link{feather_genoprob}}.}

@@ -100,8 +100,7 @@ get_dimension <- function(ind, indID, type = "individual") {
   ind
 }
 #' @export
-#' @export subset.feather_genoprob
-#' @method subset feather_genoprob
+#' @rdname subset_feather_genoprob
 subset.feather_genoprob <-
   function(x, ind=NULL, chr=NULL, mar=NULL, ...)
     subset_feather_genoprob(x, ind, chr, mar)
