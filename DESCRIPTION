@@ -1,11 +1,11 @@
 Package: qtl2feather
-Version: 0.2-15
-Date: 2019-01-06
+Version: 0.2-16
+Date: 2018-01-12
 Title: Feather Database for R/qtl2 Genotype Probabilities
 Description: Functions to rbind, cbind and subset `calc_genoprob` objects.
 Author: Petr Simecek <Petr.Simecek@jax.org>, Brian S Yandell <byandell@wisc.edu>,
     and Karl W Broman <kbroman@biostat.wisc.edu>
-Maintainer: Petr Simecek <Petr.Simecek@jax.org>
+Maintainer: Brian S Yandell <byandell@wisc.edu>
 Depends:
     R (>= 3.1.0)
 Imports:
@@ -16,6 +16,6 @@ Suggests:
     qtl2geno (>= 0.5-9),
     qtl2scan (>= 0.5-7)
 License: GPL-3
-URL: http://kbroman.org/qtl2
+URL: https://github.com/byandell/qtl2feather
 LazyData: true
 RoxygenNote: 6.0.1
