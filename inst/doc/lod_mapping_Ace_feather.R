@@ -1,8 +1,6 @@
 library(dplyr)
+library(qtl2)
 library(qtl2convert)
-library(qtl2geno)
-library(qtl2scan)
-library(qtl2plot)
 
 library(feather)
 
