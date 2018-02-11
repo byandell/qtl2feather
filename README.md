@@ -27,13 +27,17 @@ You first need to install the
 Once you have installed these, install qtl2feather as
 
     install_github("byandell/qtl2feather")
+    
+To install vignettes:
+
+    install_github("byandell/qtl2feather", build_vignettes = TRUE)
 
 ---
 
 ### Vignettes
 
-- [feather_genoprob](https://github.com/byandell/qtl2feather/blob/master/inst/doc/feather_genoprob.Rmd)
-- [feather_scan1](https://github.com/byandell/qtl2feather/blob/master/inst/doc/feather_scan1.Rmd)
+- [feather_genoprob](https://github.com/byandell/qtl2feather/blob/master/vignettes/feather_genoprob.Rmd)
+- [feather_scan1](https://github.com/byandell/qtl2feather/blob/master/vignettes/feather_scan1.Rmd)
 
 ---
 

@@ -22,8 +22,7 @@ Task: refactor this Rmd to use DOex and run some examples.
 ```{r}
 suppressPackageStartupMessages({
   library(dplyr)
-  library(qtl2geno)
-  library(qtl2scan)
+  library(qtl2)
   library(qtl2feather)
 })
 ```

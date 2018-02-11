@@ -18,8 +18,7 @@ The goal is to use `feather_genoprob` object with `scan1` and other tools in `R/
 ```{r}
 suppressPackageStartupMessages({
   library(dplyr)
-  library(qtl2geno)
-  library(qtl2scan)
+  library(qtl2)
   library(qtl2feather)
   library(qtl2ggplot)
   library(qtl2pattern)
