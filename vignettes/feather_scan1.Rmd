@@ -1,12 +1,16 @@
 ---
 title: "Feather scan1"
 author: "Brian S. Yandell"
-date: "3/17/2017"
-output: pdf_document
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Put the title of your vignette here}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 7, fig.height = 5)
 ```
 
 The goal is to use `feather_genoprob` object with `scan1` and other tools in `R/qtl2`.

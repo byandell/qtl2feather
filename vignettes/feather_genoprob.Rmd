@@ -1,12 +1,16 @@
 ---
 title: "Feather Genoprob Features"
 author: "Brian S. Yandell"
-date: "3/17/2017"
-output: pdf_document
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Put the title of your vignette here}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 7, fig.height = 5)
 ```
 
 The motivation is to reduce memory usage. Matt told us that memory is his greatest obstacle, when running QTL browsers because he cannot add more `R/plumber` workers. Also, if you have a cheap Windows laptop you cannot even open many DO `.RData` projects simply because haplotype probability object is too big.
