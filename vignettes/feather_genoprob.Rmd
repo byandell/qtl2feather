@@ -28,13 +28,11 @@ suppressPackageStartupMessages({
 ```
 
 ```{r}
-dirpath <- "~/Documents/Research/rqtl/data/"
-if(!file.exists(file <- file.path(dirpath, "DOex.zip"))) {
-  dirpath <- paste0("https://raw.githubusercontent.com/rqtl/",
-                    "qtl2data/master/DOex")
-  file <- file.path(dirpath, "DOex.zip")
-}
-DOex <- read_cross2(file)
+DOex <- 
+  read_cross2(
+    file.path("https://raw.githubusercontent.com/rqtl",
+              "qtl2data/master/DOex",
+              "DOex.zip"))
 ```
 
 Calculate genotype probabilities and convert to allele probabilities
@@ -48,17 +46,15 @@ Write feather database of pr.
 
 ```{r}
 tmpdir <- tempdir()
-fdir <- file.path(tmpdir, "feather")
-dir.create(fdir)
 ```
 
 ```{r}
-fpr <- feather_genoprob(pr, "pr", fdir)
-fapr <- feather_genoprob(apr, "apr", fdir)
+fpr <- feather_genoprob(pr, "pr", tmpdir)
+fapr <- feather_genoprob(apr, "apr", tmpdir)
 ```
 
 ```{r}
-list.files(fdir)
+list.files(tmpdir)
 ```
 
 Methods `names()` and `length()` both work properly.
@@ -159,13 +155,11 @@ markers <- dimnames(fapr$X)[[3]][1:10]
 dim(fapr$X[,,markers])
 ```
 
-Two `feather_genoprob` objects using same area. Combine using `cbind`. Notice that the order of chromosomes is reversed by joining `fapr2` to `fapr3`.
+Two `feather_genoprob` objects using same area. Combine using `cbind`. Notice that the order of chromosomes is reversed by joining `fapr2` to `fapr3`. Be sure to not overwrite existing feather databases!
 
 ```{r}
-fdir2 <- file.path(tmpdir, "feather2")
-dir.create(fdir2)
-fapr2 <- feather_genoprob(subset(apr, chr="2"), "apr", fdir2)
-fapr3 <- feather_genoprob(subset(apr, chr="3"), "apr", fdir2)
+fapr2 <- feather_genoprob(subset(apr, chr="2"), "aprx", tmpdir)
+fapr3 <- feather_genoprob(subset(apr, chr="3"), "aprx", tmpdir)
 ```
 
 ```{r}
@@ -177,7 +171,7 @@ dim(fapr32)
 ```
 
 ```{r}
-list.files(fdir2)
+list.files(tmpdir)
 ```
 
 ### Looking under the hood at `feather_genoprob` object
@@ -216,10 +210,7 @@ system.time(pr <- calc_genoprob(DOex, error_prob=0.002))
 ```
 
 ```{r}
-system.time({
-  for(i in seq(100))
-    fpr <- feather_genoprob(pr, "pr", "feather", verbose = FALSE)
-})
+system.time(fpr <- feather_genoprob(pr, "pr", tmpdir, verbose = FALSE))
 ```
 
 ```{r}

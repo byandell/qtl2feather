@@ -26,33 +26,29 @@ suppressPackageStartupMessages({
 ```
 
 ```{r}
-dirpath <- "~/Documents/Research/rqtl/data/"
-if(!file.exists(file <- file.path(dirpath, "DOex.zip"))) {
-  dirpath <- paste0("https://raw.githubusercontent.com/rqtl/",
-                    "qtl2data/master/DOex")
-  file <- file.path(dirpath, "DOex.zip")
-}
-DOex <- read_cross2(file)
+DOex <- 
+  read_cross2(
+    file.path("https://raw.githubusercontent.com/rqtl",
+              "qtl2data/master/DOex",
+              "DOex.zip"))
 ```
 
 Calculate genotype probabilities and convert to allele probabilities
 
 ```{r}
-dirpath <- "~/Documents/Research/rqtl/data/"
-if(!file.exists(file <- file.path(dirpath, "DOex_pr.rds"))) {
-  pr <- calc_genoprob(DOex, error_prob=0.002)
-  saveRDS(pr, file)
-} else {
-  pr <- readRDS(file)
-}
+pr <- calc_genoprob(DOex, error_prob=0.002)
 apr <- genoprob_to_alleleprob(pr)
 ```
 
 Write feather database of pr.
 
 ```{r}
-fpr <- feather_genoprob(pr, "pr", "feather")
-fapr <- feather_genoprob(apr, "apr", "feather")
+tmpdir <- tempdir()
+```
+
+```{r}
+fpr <- feather_genoprob(pr, "pr", tmpdir)
+fapr <- feather_genoprob(apr, "apr", tmpdir)
 ```
 
 ## Genome scan
@@ -89,24 +85,17 @@ plot(coefs, DOex$pmap, scan1_output = scan_apr)
 
 ## SNP probabilities
 
-```{r}
-if(!file.exists(file <- file.path(dirpath, "c2_snpinfo.rds"))) {
-  dirpath <- paste0("https://raw.githubusercontent.com/rqtl/",
-                    "qtl2data/master/DOex")
-  file <- file.path(dirpath, "c2_snpinfo.rds")
-  tmpfile <- tempfile()
-  download.file(file, tmpfile, quiet=TRUE)
-  snpinfo <- readRDS(tmpfile)
-  unlink(tmpfile)
-} else {
-  snpinfo <- readRDS(file)
-}
-```
-
-Calculate strain distribution patterns
+Since SNPs are in RDS, need to first download file, then read it.
+This file only has `snpinfo` for chr 2.
 
 ```{r}
-snpinfo$sdp <- calc_sdp(snpinfo[,-(1:4)])
+file <- file.path("https://raw.githubusercontent.com/rqtl",
+                  "qtl2data/master/DOex", 
+                  "c2_snpinfo.rds")
+tmpfile <- tempfile()
+download.file(file, tmpfile, quiet=TRUE)
+snpinfo <- readRDS(tmpfile)
+unlink(tmpfile)
 ```
 
 Create index to non-equivalent set of SNPs.
@@ -115,11 +104,11 @@ Create index to non-equivalent set of SNPs.
 snpinfo <- index_snps(DOex$pmap, snpinfo)
 ```
 
-Convert to snp probabilities using feather database. Seems to work.
+Convert to snp probabilities using feather database.
+Need to pick a chromosome, or first one is chosen.
 
 ```{r}
-snpinfo <- index_snps(DOex$pmap, snpinfo)
-snppr <- genoprob_to_snpprob(fapr, snpinfo)
+snppr <- genoprob_to_snpprob(subset(fapr, chr = "2"), snpinfo)
 ```
 
 ```{r}
@@ -138,6 +127,26 @@ fkinship <- calc_kinship(fapr, "loco")
 ```
 
 ```{r}
-summary(c(kinship[[1]] - fkinship[[1]]))
+summary(c(kinship[["2"]] - fkinship[["2"]]))
+```
+
+Perform SNP association analysis.
+
+```{r}
+scan_snppr <- scan1(snppr, DOex$pheno, fkinship["2"])
+```
+
+Plot results
+
+```{r}
+plot(scan_snppr, snpinfo, drop_hilit = 1.5)
+```
+
+### Clean up
+
+Remove temporary directories and files.
+
+```{r}
+unlink(tmpdir, TRUE)
 ```
 
