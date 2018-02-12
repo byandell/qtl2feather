@@ -141,12 +141,3 @@ Plot results
 ```{r}
 plot(scan_snppr, snpinfo, drop_hilit = 1.5)
 ```
-
-### Clean up
-
-Remove temporary directories and files.
-
-```{r}
-unlink(tmpdir, TRUE)
-```
-

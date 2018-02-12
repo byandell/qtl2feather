@@ -243,11 +243,3 @@ system.time({
 })
 ```
 
-### Clean up
-
-Remove temporary directories and files.
-
-```{r}
-unlink(tmpdir, TRUE)
-```
-
