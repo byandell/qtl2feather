@@ -6,10 +6,10 @@ cache: packages
 
 r_packages:
  - devtools
+ - feather
 
 r_github_packages:
  - rqtl/qtl2
- - byandell/qtl2ggplot
 
 addons:
   apt:

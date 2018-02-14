@@ -36,7 +36,6 @@
 #' the usual access to elements of the object invoke \code{\link{subset.feather_genoprob}}.
 #'
 #' @importFrom feather write_feather
-#' @importFrom dplyr bind_cols
 #' @export
 #' @keywords utilities
 #'

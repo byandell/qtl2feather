@@ -17,11 +17,8 @@ The goal is to use `feather_genoprob` object with `scan1` and other tools in `R/
 
 ```{r}
 suppressPackageStartupMessages({
-  library(dplyr)
   library(qtl2)
   library(qtl2feather)
-  library(qtl2ggplot)
-  library(qtl2pattern)
 })
 ```
 
@@ -58,7 +55,7 @@ scan_apr <- scan1(fapr, DOex$pheno)
 ```
 
 ```{r}
-summary(scan_apr, DOex$pmap)
+find_peaks(scan_apr, DOex$pmap)
 ```
 
 ```{r}
@@ -67,10 +64,6 @@ plot(scan_apr, DOex$pmap)
 
 ```{r}
 coefs <- scan1coef(apr, DOex$pheno)
-```
-
-```{r}
-summary(coefs, scan_apr, DOex$pmap)
 ```
 
 ```{r}
