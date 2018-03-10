@@ -1,6 +1,6 @@
 Package: qtl2feather
-Version: 0.3-7
-Date: 2018-02-15
+Version: 0.3-8
+Date: 2018-03-09
 Title: Feather Database for R/qtl2 Genotype Probabilities
 Description: Functions to rbind, cbind and subset `calc_genoprob` objects.
 Author: Petr Simecek <Petr.Simecek@jax.org>, Brian S Yandell <byandell@wisc.edu>,
@@ -12,7 +12,7 @@ Imports:
     feather
 Suggests:
     testthat,
-    qtl2 (>= 0.8),
+    qtl2 (>= 0.15-1),
     knitr, rmarkdown
 VignetteBuilder: knitr
 License: GPL-3
