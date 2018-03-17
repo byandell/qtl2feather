@@ -9,6 +9,8 @@
 R/qtl2feather is a new package that uses [feather](https://github.com/wesm/feather) to store a genotype probabilitis in a feather database for rapid access. It is fully integrated with
 [R/qtl2](http://kbroman.org/qtl2) (aka qtl2). See that package for the bigger story of the qtl2 suite of routines.
 
+This package, while new, is deprecated. Please instead use [R/qtl2fst](https://github.com/rqtl/qtl2fst), which relies on the [fst package](http://www.fstpackage.org/).
+
 ---
 
 ### Installation
