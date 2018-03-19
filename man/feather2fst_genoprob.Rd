@@ -7,11 +7,9 @@
 feather2fst_genoprob(fprobs, verbose = TRUE)
 }
 \arguments{
+\item{fprobs}{object of class \code{feather_genoprob}.}
+
 \item{verbose}{Show warning of feather creation if \code{TRUE} (default).}
-
-\item{fprob}{object of class \code{feather_genoprob}.}
-
-\item{fdir}{Directory for feather database.}
 }
 \value{
 An object of class \code{fst_genoprob}.

@@ -3,8 +3,7 @@
 #'
 #' See package \code{R/qtl2fst} for faster database version.
 #'
-#' @param fprob object of class \code{feather_genoprob}.
-#' @param fdir Directory for feather database.
+#' @param fprobs object of class \code{feather_genoprob}.
 #' @param verbose Show warning of feather creation if \code{TRUE} (default).
 #'
 #' @return An object of class \code{fst_genoprob}.

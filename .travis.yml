@@ -12,7 +12,6 @@ r_packages:
 
 r_github_packages:
  - rqtl/qtl2
- - rqtl/qtl2fst
 
 addons:
   apt:
