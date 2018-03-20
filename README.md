@@ -24,7 +24,7 @@ You first need to install the
 [feather](https://github.com/wesm/feather) package and the
 [dplyr](http://dplyr.tidyverse.org/)
 
-    install.packages(c("feather", "dplyr"))
+    install.packages(c("feather", "dplyr", "fst"))
 
 Once you have installed these, install qtl2feather as
 
