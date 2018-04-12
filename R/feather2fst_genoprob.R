@@ -40,6 +40,7 @@ feather2fst_genoprob <- function(fprobs, verbose = TRUE) {
     attr(fp, a) <- attrs[[a]]
   
   class(fp) <- attrs$class
+  class(fp)[1] <- "fst_genoprob"
   
   fp
 }
