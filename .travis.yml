@@ -1,6 +1,6 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
-language: R
+language: r
 sudo: false
 cache: packages
 
@@ -22,12 +22,14 @@ addons:
       - g++-4.9
       - gfortran-4.9
 
-before_install: |
-  mkdir ~/.R
-  cat <<EOF > ~/.R/Makevars
-  CXX=g++-4.9
-  CXX1X=g++-4.9
-  CXX1XSTD=-std=c++11
+before_install:
+  - mkdir -p ~/.R
+  - echo "CC=gcc-4.9 -std=gnu99"  >> ~/.R/Makevars
+  - echo "CXX=g++-4.9"            >> ~/.R/Makevars
+  - echo "CXX1X=g++-4.9"          >> ~/.R/Makevars
+  - echo "CXX11=g++-4.9"          >> ~/.R/Makevars
+  - echo "CXX1XSTD=-std=c++0x"    >> ~/.R/Makevars
+  - echo "CXX11STD=-std=c++0x"    >> ~/.R/Makevars
 
 warnings_are_errors: true
 
